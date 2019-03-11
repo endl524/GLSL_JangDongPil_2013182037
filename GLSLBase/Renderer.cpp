@@ -37,9 +37,23 @@ void Renderer::CreateVertexBufferObjects()
 		-0.5, -0.5, 0.f,  0.5, 0.5, 0.f, 0.5, -0.5, 0.f, //Triangle2
 	};
 
-	glGenBuffers(1, &m_VBORect);
+	glGenBuffers(1, &m_VBORect); 
+	// GPU에서 데이터를 사용하기 위해 "Buffer Object"를 생성하고,
+	// 생성된 VBO의 "Object ID"를 <두번째 인자>에 넣어준다.
+
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBORect);
+	// 생성된 VBO의 ID를 사용하여 Bind 한다.
+	// Bind 란? -> 실제 작업할 대상을 선정해 주는 것.
+	
+	// GL_ARRAY_BUFFER는 "작업대"의 개념이다.
+	// 즉, 현재는 작업대에 VBO를 하나 올려둔 상태이다.
+	// [[VBO를 가지고 어떤 작업을 하기 전에는 반드시 그 VBO를 Bind 해야한다.]]
+
 	glBufferData(GL_ARRAY_BUFFER, sizeof(rect), rect, GL_STATIC_DRAW);
+	// Bind된 VBO에 데이터를 할당한다.
+	// glBindBuffer 호출 후에 glBufferData를 바로 호출하는 것이 옳다.
+	// 애멎은 VBO에 데이터 할당을 하게될 수도 있기 때문이다. (작업대에 다른 VBO가 올라가있다던가..)
+	// 여기서 sizeof(rect)는 데이터들의 전체 사이즈를 의미.
 }
 
 void Renderer::AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType)
@@ -273,10 +287,21 @@ void Renderer::Test()
 
 	int attribPosition = glGetAttribLocation(m_SolidRectShader, "a_Position");
 	glEnableVertexAttribArray(attribPosition);
+
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBORect);
+	// m_VBORect가 가진 ID를 불러와서 "작업대"에 올린다.
+
 	glVertexAttribPointer(attribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+	// Draw 시 데이터를 읽어갈 단위의 크기 및 시작점을 설정한다.
+	// 여기서는 Float Pointer를 사용하고 있다.
+	// 현재 정점 정보는 3개의 위치값만으로 이루어져있기 때문에 sizeof(float) * 3을 한다.
+	// (3을 곱한 이유는 데이터가 3개씩으로 이루어져있기 때문에, 정점 마다 uv값이 추가된다면 5를 곱해야한다.)
+	
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+	// 시작점과 데이터 단위의 크기를 정했으니, 배열을 그리라고 호출한다.
+	// 0번 정점 부터 6번 정점 까지.
+
 
 	glDisableVertexAttribArray(attribPosition);
 }
