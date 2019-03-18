@@ -27,7 +27,8 @@ void RenderScene(void)
 
 	// Renderer Test
 	//g_Renderer->Test();
-	g_Renderer->Lecture();
+	//g_Renderer->Lecture();
+	g_Renderer->Draw_ProxyGeometry();
 
 	glutSwapBuffers();
 }

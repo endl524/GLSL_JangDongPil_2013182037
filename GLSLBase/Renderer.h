@@ -40,6 +40,8 @@ private:
 
 	vector<GLuint> m_Gen_Quads_VBO_IDs_Vector;
 
+	GLuint m_VBO_ProxyGeo = 0;
+	GLuint m_Count_ProxyGeo = 0;
 
 private:
 	void Initialize(int windowSizeX, int windowSizeY);
@@ -56,6 +58,7 @@ private:
 	
 	void Create_Lecture_VBO();
 	void Gen_Quads(const int& num);
+	void CreateProxyGeometry();
 
 public:
 	Renderer(int windowSizeX, int windowSizeY);
@@ -66,5 +69,6 @@ public:
 
 	void Test();
 	void Lecture();
+	void Draw_ProxyGeometry();
 };
 
