@@ -1,6 +1,6 @@
-#version 450
+#version 450 // GLSL v4.5를 사용한다고 선언!
 
-layout(location=0) out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
 
 void main()
 {

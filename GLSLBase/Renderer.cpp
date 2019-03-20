@@ -28,7 +28,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	Random_Device_Setting();
 
 	//Create VBOs
-	//CreateVertexBufferObjects();
+	CreateVertexBufferObjects();
 
 	//Gen Quads
 	//Gen_Quads(GEN_QUADS_NUMS);
@@ -46,13 +46,18 @@ void Renderer::Random_Device_Setting()
 	m_Random_Position = temp_random_pos;
 }
 
-void Renderer::CreateVertexBufferObjects()
+void Renderer::CreateVertexBufferObjects() // Renderer::Test()를 위한 VBO 생성기
 {
+	float size = 0.02f;
 	float rect[]
 		=
 	{
-		-0.5, -0.5, 0.f, -0.5, 0.5, 0.f, 0.5, 0.5, 0.f, //Triangle1
-		-0.5, -0.5, 0.f,  0.5, 0.5, 0.f, 0.5, -0.5, 0.f, //Triangle2
+		-size, -size, 0.0f, 0.5f,
+		-size, size, 0.0f, 0.5f,
+		size, size, 0.0f, 0.5f, //Triangle1 Complete
+		-size, -size, 0.0f, 0.5f,
+		size, size, 0.0f, 0.5f,
+		size, -size, 0.0f, 0.5f //Triangle2 Complete
 	};
 
 	glGenBuffers(1, &m_VBORect); 
@@ -75,6 +80,22 @@ void Renderer::CreateVertexBufferObjects()
 	// glBindBuffer 호출 후에 glBufferData를 바로 호출하는 것이 옳다.
 	// 애멎은 VBO에 데이터 할당을 하게될 수도 있기 때문이다. (작업대에 다른 VBO가 올라가있다던가..)
 	// 여기서 sizeof(rect)는 데이터들의 전체 사이즈를 의미.
+
+
+	// 똑같이 color도 만들어준다.
+	float color[]
+		=
+	{
+		1.0f, 0.0f, 0.0f, 1.0f,
+		1.0f, 0.0f, 0.0f, 1.0f,
+		1.0f, 0.0f, 0.0f, 1.0f, //Triangle1 Complete
+		1.0f, 0.0f, 0.0f, 1.0f,
+		1.0f, 0.0f, 0.0f, 1.0f,
+		1.0f, 0.0f, 0.0f, 1.0f //Triangle2 Complete
+	};
+	glGenBuffers(1, &m_VBORectColor);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBORectColor);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(color), color, GL_STATIC_DRAW);
 }
 
 void Renderer::Create_Lecture_VBO()
@@ -421,20 +442,32 @@ void Renderer::Test()
 {
 	glUseProgram(m_SolidRectShader);
 
-	int attribPosition = glGetAttribLocation(m_SolidRectShader, "a_Position");
-	
-	glEnableVertexAttribArray(attribPosition);
-	// 
+	if (m_Scale > 1.0f) { m_Scale = 0.0f; }
+	m_Scale += 0.01f;
+
+	GLuint u_Time = glGetUniformLocation(m_SolidRectShader, "u_Time");
+	glUniform1f(u_Time, m_Scale); // 해당 Uniform 변수의 값을 변경한다.
+
+
+	GLuint a_Position = glGetAttribLocation(m_SolidRectShader, "a_Position");
+	// 해당 Shader의 "a_Position" 이라는 Attribute의 번호를 받아온다.
+
+	glEnableVertexAttribArray(a_Position);
+	// 받아온 번호의 Attribute를 사용하기 위해 Enable 시키는 것.
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBORect);
 	// m_VBORect가 가진 ID를 불러와서 "작업대"에 올린다.
 
-	glVertexAttribPointer(attribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
-	// Draw 시 데이터를 읽어갈 단위의 크기 및 시작점을 설정한다.
+	glVertexAttribPointer(a_Position, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 4, 0);
+	// Draw 시 데이터를 읽어갈 단위의 크기 및 시작점을 설정한다. 인자 => (Attribute Number, 읽을 변수 하나의 크기, 읽을 자료형, ???, 건너 뛸 offset 크기, ???)
 	// (여기서는 Float Pointer를 사용하고 있다.)
 	// 현재 정점 정보는 3개의 위치값만으로 이루어져있기 때문에 sizeof(float) * 3을 한다.
 	// (3을 곱한 이유는 데이터가 3개씩으로 이루어져있기 때문에, 정점 마다 uv값이 추가된다면 5를 곱해야한다.)
-	
+
+	GLuint a_Color = glGetAttribLocation(m_SolidRectShader, "a_Color");
+	glEnableVertexAttribArray(a_Color);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBORectColor);
+	glVertexAttribPointer(a_Color, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 4, 0);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	// 시작점과 데이터 단위의 크기를 정했으니, 배열을 그리라고 호출한다.
@@ -442,8 +475,9 @@ void Renderer::Test()
 	// "0번 정점" 부터 "6개"를..
 
 
-	glDisableVertexAttribArray(attribPosition);
-	// 
+	glDisableVertexAttribArray(a_Position);
+	// 작업을 완료했으니 해당 Attribute를 Disable 시킨다.
+	glDisableVertexAttribArray(a_Color);
 }
 
 void Renderer::Lecture()
@@ -476,6 +510,37 @@ void Renderer::Draw_ProxyGeometry()
 	glDisableVertexAttribArray(attribPosition);
 }
 
+
+
+
+// ================================================================
+
+
 // ★ 프록시 지오메트리(?) 구현해볼것. ★
 
 // OpenGL Quick Reference Card -> 셰이더 랭귀지 참조문서
+
+
+// Shader Language 집합체 타입 연습문제
+
+// mat4 m = mat4(2.0);
+// => 2.0으로 각 0x0, 1x1, 2x2, ...의 원소들이 초기화된 4x4 행렬.
+// 2.0f 0.0f 0.0f 0.0f
+// 0.0f 2.0f 0.0f 0.0f
+// 0.0f 0.0f 2.0f 0.0f
+// 0.0f 0.0f 0.0f 2.0f
+
+// => 단, 벡터의 경우 vec3(n)은 전체 원소를 n으로 초기화 한다.
+// => vec3 white = vec3(1.0f);
+// => white == {1.0f, 1.0f, 1.0f}
+
+// vec4 zVec = m[2];
+// => m[2]는 3열. {0.0, 0.0f, 2.0f, 0.0f}.
+
+// float yScale = m[1][1];
+// => m[1][1]은 2행 2열. yScale = 2.0f.
+
+// ** float이 기본형이고, double로 구성하고 싶다면 d를 접두사로 붙힌다.
+// ==> vec2, vec3, mat3, mat4, .... 는 float형을 사용.
+// ==> dvec2, dvec3, dmat3, dmat4, .... 는 double형을 사용.
+// ** int형은 마찬가지로 'i'를, unsigned int는 'u'를, bool형은 'b'를 접두사로 한다. **

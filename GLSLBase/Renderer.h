@@ -22,6 +22,7 @@ using namespace std;
 #define GEN_QUADS_HALF_SIZE 0.01f
 #define GEN_QUADS_POS_MIN -0.99f
 #define GEN_QUADS_POS_MAX 0.99f
+#define PI 3.1416f
 
 class Renderer
 {
@@ -32,6 +33,9 @@ private:
 	unsigned int m_WindowSizeY = 0;
 
 	GLuint m_VBORect = 0;
+	GLuint m_VBORectColor = 0;
+	float m_Scale = 0.0f;
+
 	GLuint m_SolidRectShader = 0;
 
 	random_device m_Random_Device;
