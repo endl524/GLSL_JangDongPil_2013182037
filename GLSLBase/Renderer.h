@@ -18,11 +18,12 @@
 
 using namespace std;
 
-#define GEN_QUADS_NUMS 1000
-#define GEN_QUADS_HALF_SIZE 0.01f
-#define GEN_QUADS_POS_MIN -0.99f
-#define GEN_QUADS_POS_MAX 0.99f
-#define PI 3.1416f
+#define PARTICLE_NUMS 1000
+#define PARTICLE_HALF_SIZE 0.01f
+#define PARTICLE_RAND_POS_MIN -0.99f
+#define PARTICLE_RAND_POS_MAX 0.99f
+#define PARTICLE_RAND_VELOCITY_MIN -1.0f
+#define PARTICLE_RAND_VELOCITY_MAX 1.0f
 
 class Renderer
 {
@@ -35,15 +36,22 @@ private:
 	GLuint m_VBORect = 0;
 	GLuint m_VBORectColor = 0;
 	float m_Scale = 0.0f;
+	float m_Time = 0.0f;
 
+	// Shader Programs
 	GLuint m_SolidRectShader = 0;
+	GLuint m_SimpleParticleShader = 0;
 
 	random_device m_Random_Device;
 	mt19937_64 m_Random_Seed;
 	uniform_real_distribution<> m_Random_Position;
+	uniform_real_distribution<> m_Random_Veclocity;
 
 	vector<GLuint> m_Gen_Quads_VBO_IDs_Vector;
 
+
+	GLuint m_VBO_Particle = 0;
+	GLuint m_Size_of_Particle = 0;
 	GLuint m_VBO_ProxyGeo = 0;
 	GLuint m_Count_ProxyGeo = 0;
 
@@ -60,8 +68,7 @@ private:
 	
 	void Random_Device_Setting();
 	
-	void Create_Lecture_VBO();
-	void Gen_Quads(const int& num);
+	void Create_Particle_VBO(const int& particle_Count);
 	void CreateProxyGeometry();
 
 public:
@@ -72,7 +79,7 @@ public:
 	GLuint CreateBmpTexture(char * filePath);
 
 	void Test();
-	void Lecture();
+	void Draw_Particle();
 	void Draw_ProxyGeometry();
 };
 
