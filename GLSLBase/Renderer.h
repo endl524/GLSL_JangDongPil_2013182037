@@ -7,7 +7,7 @@
 
 
 #include <random>
-#include <vector>
+#include <chrono>
 
 
 #include "Dependencies\glew.h"
@@ -24,6 +24,10 @@ using namespace std;
 #define PARTICLE_RAND_POS_MAX 0.99f
 #define PARTICLE_RAND_VELOCITY_MIN -1.0f
 #define PARTICLE_RAND_VELOCITY_MAX 1.0f
+#define PARTICLE_RAND_EMIT_TIME_MIN 0.0f
+#define PARTICLE_RAND_EMIT_TIME_MAX 6.0f
+#define PARTICLE_RAND_LIFE_TIME_MIN 1.0f
+#define PARTICLE_RAND_LIFE_TIME_MAX 3.0f
 
 class Renderer
 {
@@ -35,6 +39,8 @@ private:
 
 	GLuint m_VBORect = 0;
 	GLuint m_VBORectColor = 0;
+
+	// Global Variable
 	float m_Scale = 0.0f;
 	float m_Time = 0.0f;
 
@@ -42,16 +48,21 @@ private:
 	GLuint m_SolidRectShader = 0;
 	GLuint m_SimpleParticleShader = 0;
 
+	// Random Engine
 	random_device m_Random_Device;
 	mt19937_64 m_Random_Seed;
 	uniform_real_distribution<> m_Random_Position;
 	uniform_real_distribution<> m_Random_Veclocity;
+	uniform_real_distribution<> m_Random_Emit_Time;
+	uniform_real_distribution<> m_Random_Life_Time;
+	
+	// Chrono Engine
+	chrono::system_clock::time_point m_Prev_Time;
+	chrono::system_clock::time_point m_Curr_Time;
 
-	vector<GLuint> m_Gen_Quads_VBO_IDs_Vector;
-
-
+	// VBO Variable
 	GLuint m_VBO_Particle = 0;
-	GLuint m_Size_of_Particle = 0;
+	GLuint m_Count_of_Particle_Vertice = 0;
 	GLuint m_VBO_ProxyGeo = 0;
 	GLuint m_Count_ProxyGeo = 0;
 
@@ -68,8 +79,9 @@ private:
 	
 	void Random_Device_Setting();
 	
-	void Create_Particle_VBO(const int& particle_Count);
 	void CreateProxyGeometry();
+	void Create_Lec4_Particle_VBO(const int& particle_Count);
+	void Create_Lec5_Particle_VBO(const int& particle_Count);
 
 public:
 	Renderer(int windowSizeX, int windowSizeY);
@@ -79,7 +91,8 @@ public:
 	GLuint CreateBmpTexture(char * filePath);
 
 	void Test();
-	void Draw_Particle();
 	void Draw_ProxyGeometry();
+	void Draw_Lec4_Particle();
+	void Draw_Lec5_Particle();
 };
 
