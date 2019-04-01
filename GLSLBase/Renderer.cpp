@@ -24,19 +24,21 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	//Load shaders
 	m_SolidRectShader = CompileShaders("./Shaders/SolidRect.vs", "./Shaders/SolidRect.fs");
 	m_SimpleParticleShader = CompileShaders("./Shaders/SimpleParticle.vs", "./Shaders/SimpleParticle.fs");
+	m_Sin_Particle_Shader = CompileShaders("./Shaders/SinParticle.vs", "./Shaders/SinParticle.fs");
 
 	//Random Device Setting
 	Random_Device_Setting();
 
 	//Create VBOs
-	CreateVertexBufferObjects();
+	//CreateVertexBufferObjects();
 
 	//Create Particle
 	//Create_Lec4_Particle_VBO(PARTICLE_NUMS);
-	Create_Lec5_Particle_VBO(PARTICLE_NUMS);
+	//Create_Lec5_Particle_VBO(PARTICLE_NUMS);
+	Create_Sin_Particle_VBO(PARTICLE_NUMS);
 
 	//Create Proxy Geometry
-	CreateProxyGeometry();
+	//CreateProxyGeometry();
 }
 
 void Renderer::Random_Device_Setting()
@@ -115,10 +117,11 @@ void Renderer::Create_Lec4_Particle_VBO(const int& particle_Count)
 	float temp_Velocity_X, temp_Velocity_Y, temp_Velocity_Z;
 	float temp_Emit_Time, temp_Life_Time;
 
-	m_Count_of_Particle_Vertice = particle_Count * 6 * 6;
-	float* Particles_Vertice = new float[m_Count_of_Particle_Vertice];
+	m_Count_of_Particle_Vertice = particle_Count * 6;
+	int array_Length = m_Count_of_Particle_Vertice * 6;
+	float* Particles_Vertice = new float[array_Length];
 
-	for (int i = 0; i < m_Count_of_Particle_Vertice; ++i)
+	for (int i = 0; i < array_Length; ++i)
 	{
 		temp_Pos_X = m_Random_Position(m_Random_Seed);
 		temp_Pos_Y = m_Random_Position(m_Random_Seed);
@@ -171,7 +174,7 @@ void Renderer::Create_Lec4_Particle_VBO(const int& particle_Count)
 
 	glGenBuffers(1, &m_VBO_Particle);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_Particle);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_Count_of_Particle_Vertice, Particles_Vertice, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * array_Length, Particles_Vertice, GL_STATIC_DRAW);
 
 	delete[] Particles_Vertice;
 }
@@ -182,10 +185,14 @@ void Renderer::Create_Lec5_Particle_VBO(const int& particle_Count)
 	float temp_Velocity_X, temp_Velocity_Y, temp_Velocity_Z;
 	float temp_Emit_Time, temp_Life_Time; // Start_Time, Life_Time
 
-	m_Count_of_Particle_Vertice = particle_Count * 6 * 8;
-	float* Particles_Vertice = new float[m_Count_of_Particle_Vertice];
+	// 파티클 조각 개수 = particle_Count
+	// 파티클 한조각의 정점 개수 = 6
+	// 정점당 데이터 개수 = 8
+	m_Count_of_Particle_Vertice = particle_Count * 6;
+	int array_Length = m_Count_of_Particle_Vertice * 8;
+	float* Particles_Vertice = new float[array_Length];
 
-	for (int i = 0; i < m_Count_of_Particle_Vertice; ++i)
+	for (int i = 0; i < array_Length; ++i)
 	{
 		temp_Pos_X = m_Random_Position(m_Random_Seed);
 		temp_Pos_Y = m_Random_Position(m_Random_Seed);
@@ -252,7 +259,7 @@ void Renderer::Create_Lec5_Particle_VBO(const int& particle_Count)
 
 	glGenBuffers(1, &m_VBO_Particle);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_Particle);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_Count_of_Particle_Vertice, Particles_Vertice, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * array_Length, Particles_Vertice, GL_STATIC_DRAW);
 
 	delete[] Particles_Vertice;
 }
@@ -342,6 +349,68 @@ void Renderer::CreateProxyGeometry()
 
 	delete[] vertices;
 }
+
+void Renderer::Create_Sin_Particle_VBO(const int& particle_Count)
+{
+	float temp_Pos_X, temp_Pos_Y;
+	float temp_Emit_Time, temp_Life_Time; // Start_Time, Life_Time
+
+	// 파티클 조각 개수 = particle_Count
+	// 파티클 한조각의 정점 개수 = 6
+	// 정점당 데이터 개수 = 8
+	m_Count_of_Sin_Particle_Vertice = particle_Count * 6;
+	int array_Length = m_Count_of_Sin_Particle_Vertice * 8;
+	float* Particles_Vertice = new float[array_Length];
+
+	for (int i = 0; i < array_Length; ++i)
+	{
+		temp_Emit_Time = m_Random_Emit_Time(m_Random_Seed);
+		temp_Life_Time = m_Random_Life_Time(m_Random_Seed);
+
+		Particles_Vertice[i++] = -PARTICLE_HALF_SIZE; // Pos_X
+		Particles_Vertice[i++] = PARTICLE_HALF_SIZE; // Pos_Y
+		Particles_Vertice[i++] = 0.0f; // Pos_Z
+		Particles_Vertice[i++] = temp_Emit_Time; // Emit_Time
+		Particles_Vertice[i++] = temp_Life_Time; // Life_Time
+
+		Particles_Vertice[i++] = -PARTICLE_HALF_SIZE;
+		Particles_Vertice[i++] = -PARTICLE_HALF_SIZE;
+		Particles_Vertice[i++] = 0.0f;
+		Particles_Vertice[i++] = temp_Emit_Time;
+		Particles_Vertice[i++] = temp_Life_Time;
+
+		Particles_Vertice[i++] = PARTICLE_HALF_SIZE;
+		Particles_Vertice[i++] = PARTICLE_HALF_SIZE;
+		Particles_Vertice[i++] = 0.0f;
+		Particles_Vertice[i++] = temp_Emit_Time;
+		Particles_Vertice[i++] = temp_Life_Time;
+
+		Particles_Vertice[i++] = PARTICLE_HALF_SIZE;
+		Particles_Vertice[i++] = -PARTICLE_HALF_SIZE;
+		Particles_Vertice[i++] = 0.0f;
+		Particles_Vertice[i++] = temp_Emit_Time;
+		Particles_Vertice[i++] = temp_Life_Time;
+
+		Particles_Vertice[i++] = PARTICLE_HALF_SIZE;
+		Particles_Vertice[i++] = PARTICLE_HALF_SIZE;
+		Particles_Vertice[i++] = 0.0f;
+		Particles_Vertice[i++] = temp_Emit_Time;
+		Particles_Vertice[i++] = temp_Life_Time;
+
+		Particles_Vertice[i++] = -PARTICLE_HALF_SIZE;
+		Particles_Vertice[i++] = -PARTICLE_HALF_SIZE;
+		Particles_Vertice[i++] = 0.0f;
+		Particles_Vertice[i++] = temp_Emit_Time;
+		Particles_Vertice[i] = temp_Life_Time;
+	}
+
+	glGenBuffers(1, &m_VBO_Sin_Particle);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_Sin_Particle);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * array_Length, Particles_Vertice, GL_STATIC_DRAW);
+
+	delete[] Particles_Vertice;
+}
+
 
 void Renderer::AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType)
 {
@@ -571,15 +640,17 @@ GLuint Renderer::CreateBmpTexture(char * filePath)
 
 void Renderer::Test()
 {
-	glUseProgram(m_SolidRectShader);
+	GLuint shader_ID = m_SolidRectShader;
+
+	glUseProgram(shader_ID);
 
 	if (m_Scale > 1.0f) { m_Scale = 0.0f; }
 	m_Scale += 0.01f;
 
-	GLuint u_Time = glGetUniformLocation(m_SolidRectShader, "u_Time");
+	GLuint u_Time = glGetUniformLocation(shader_ID, "u_Time");
 	glUniform1f(u_Time, m_Scale); // 해당 Uniform 변수의 값을 변경한다.
 
-	GLuint a_Position = glGetAttribLocation(m_SolidRectShader, "a_Position");
+	GLuint a_Position = glGetAttribLocation(shader_ID, "a_Position");
 	// 해당 Shader의 "a_Position" 이라는 Attribute의 번호를 받아온다.
 
 	glEnableVertexAttribArray(a_Position);
@@ -594,7 +665,7 @@ void Renderer::Test()
 	// 현재 정점 정보는 3개의 위치값만으로 이루어져있기 때문에 sizeof(float) * 3을 한다.
 	// (3을 곱한 이유는 데이터가 3개씩으로 이루어져있기 때문에, 정점 마다 uv값이 추가된다면 5를 곱해야한다.)
 
-	GLuint a_Color = glGetAttribLocation(m_SolidRectShader, "a_Color");
+	GLuint a_Color = glGetAttribLocation(shader_ID, "a_Color");
 	glEnableVertexAttribArray(a_Color);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBORectColor);
 	glVertexAttribPointer(a_Color, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 4, 0);
@@ -612,14 +683,16 @@ void Renderer::Test()
 
 void Renderer::Draw_Lec4_Particle()
 {
-	glUseProgram(m_SimpleParticleShader);
+	GLuint shader_ID = m_SimpleParticleShader;
 
-	GLuint u_Time = glGetUniformLocation(m_SimpleParticleShader, "u_Time");
+	glUseProgram(shader_ID);
+
+	GLuint u_Time = glGetUniformLocation(shader_ID, "u_Time");
 	glUniform1f(u_Time, m_Time); // 해당 Uniform 변수의 값을 변경한다.
 	m_Time += 0.01f;
 
-	GLuint a_Position = glGetAttribLocation(m_SimpleParticleShader, "a_Position");
-	GLuint a_Velocity = glGetAttribLocation(m_SimpleParticleShader, "a_Velocity");
+	GLuint a_Position = glGetAttribLocation(shader_ID, "a_Position");
+	GLuint a_Velocity = glGetAttribLocation(shader_ID, "a_Velocity");
 	glEnableVertexAttribArray(a_Position);
 	glEnableVertexAttribArray(a_Velocity);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_Particle);
@@ -633,16 +706,18 @@ void Renderer::Draw_Lec4_Particle()
 
 void Renderer::Draw_Lec5_Particle()
 {
-	glUseProgram(m_SimpleParticleShader);
+	GLuint shader_ID = m_SimpleParticleShader;
 
-	GLuint u_Time = glGetUniformLocation(m_SimpleParticleShader, "u_Time");
-	GLuint u_Repeat = glGetUniformLocation(m_SimpleParticleShader, "u_Repeat");
+	glUseProgram(shader_ID);
+
+	GLuint u_Time = glGetUniformLocation(shader_ID, "u_Time");
+	GLuint u_Repeat = glGetUniformLocation(shader_ID, "u_Repeat");
 	glUniform1f(u_Time, m_Time);
 	m_Time += 0.01f;
 
-	GLuint a_Position = glGetAttribLocation(m_SimpleParticleShader, "a_Position");
-	GLuint a_Velocity = glGetAttribLocation(m_SimpleParticleShader, "a_Velocity");
-	GLuint a_Emit_and_Life_Time = glGetAttribLocation(m_SimpleParticleShader, "a_Emit_and_Life_Time");
+	GLuint a_Position = glGetAttribLocation(shader_ID, "a_Position");
+	GLuint a_Velocity = glGetAttribLocation(shader_ID, "a_Velocity");
+	GLuint a_Emit_and_Life_Time = glGetAttribLocation(shader_ID, "a_Emit_and_Life_Time");
 	
 	glEnableVertexAttribArray(a_Position);
 	glEnableVertexAttribArray(a_Velocity);
@@ -661,9 +736,11 @@ void Renderer::Draw_Lec5_Particle()
 
 void Renderer::Draw_ProxyGeometry()
 {
-	glUseProgram(m_SolidRectShader);
+	GLuint shader_ID = m_SolidRectShader;
 
-	int attribPosition = glGetAttribLocation(m_SolidRectShader, "a_Position");
+	glUseProgram(shader_ID);
+
+	int attribPosition = glGetAttribLocation(shader_ID, "a_Position");
 
 	glEnableVertexAttribArray(attribPosition);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_ProxyGeo);
@@ -671,6 +748,32 @@ void Renderer::Draw_ProxyGeometry()
 
 	glDrawArrays(GL_TRIANGLES, 0, m_Count_ProxyGeo);
 	glDisableVertexAttribArray(attribPosition);
+}
+
+void Renderer::Draw_Sin_Particle()
+{
+	GLuint shader_ID = m_Sin_Particle_Shader;
+
+	glUseProgram(shader_ID);
+
+	GLuint u_Time = glGetUniformLocation(shader_ID, "u_Time");
+	GLuint u_Repeat = glGetUniformLocation(shader_ID, "u_Repeat");
+	glUniform1f(u_Time, m_Time);
+	m_Time += 0.01f;
+
+	GLuint a_Position = glGetAttribLocation(shader_ID, "a_Position");
+	GLuint a_Emit_and_Life_Time = glGetAttribLocation(shader_ID, "a_Emit_and_Life_Time");
+
+	glEnableVertexAttribArray(a_Position);
+	glEnableVertexAttribArray(a_Emit_and_Life_Time);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_Sin_Particle);
+	glVertexAttribPointer(a_Position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, 0);
+	glVertexAttribPointer(a_Emit_and_Life_Time, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (GLvoid*)(sizeof(float) * 6));
+
+	glDrawArrays(GL_TRIANGLES, 0, m_Count_of_Sin_Particle_Vertice);
+	glDisableVertexAttribArray(a_Position);
+	glDisableVertexAttribArray(a_Emit_and_Life_Time);
 }
 
 

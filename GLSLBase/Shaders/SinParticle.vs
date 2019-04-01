@@ -1,20 +1,19 @@
 #version 450
 
 in vec3 a_Position;
-in vec3 a_Velocity;
 in vec2 a_Emit_and_Life_Time;
 
 uniform float u_Time;
 uniform bool u_Repeat = true;
 
-const vec3 c_Gravity = vec3(0.0f, -5.0f, 0.0f);
+const float PI = 3.1416;
 
 void main()
 {
 	vec3 new_Pos = a_Position.xyz;
-
 	float start_Time = a_Emit_and_Life_Time.x;
 	float life_Time = a_Emit_and_Life_Time.y;
+	//float new_Time = fract(u_Time);
 
 	float new_Time = u_Time - start_Time;
 
@@ -34,7 +33,8 @@ void main()
 		}
 		else
 		{
-			new_Pos += a_Velocity * new_Time + (c_Gravity * new_Time * new_Time) * 0.5f;
+			new_Pos.x += (new_Time * 0.5f);
+			new_Pos.y += (sin(new_Time * PI * 2.0f) * 0.5f);
 		}
 	}
 	else
@@ -42,12 +42,7 @@ void main()
 		new_Pos = vec3(20000.0f,20000.0f,20000.0f);
 	}
 
-	gl_Position = vec4(new_Pos, 1);
+	
+
+	gl_Position = vec4(new_Pos.xyz, 1);
 }
-
-// fract()는 소수점 이하를 지운다. 따라서 0~1을 반복하게 된다.
-// Pos = Pos(init) + V(init) * T
-// Pos = Pos(init) + V(init) * T + (a(init) * T^2) / 2
-
-// 비활성 (임의의 위치로 날려보내는) 작업 "vec3(20000.0f, 20000.0f, 20000.0f);" 은 클리핑이 되면서 .fs로 넘어가지 않는다.
-// GPU에서 난수를 생성하는 것은 비효율적이다. (때문에 외부에서 받아온다.)

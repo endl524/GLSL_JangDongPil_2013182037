@@ -18,14 +18,14 @@
 
 using namespace std;
 
-#define PARTICLE_NUMS 1000
+#define PARTICLE_NUMS 2000
 #define PARTICLE_HALF_SIZE 0.01f
 #define PARTICLE_RAND_POS_MIN -0.99f
 #define PARTICLE_RAND_POS_MAX 0.99f
 #define PARTICLE_RAND_VELOCITY_MIN -1.0f
 #define PARTICLE_RAND_VELOCITY_MAX 1.0f
 #define PARTICLE_RAND_EMIT_TIME_MIN 0.0f
-#define PARTICLE_RAND_EMIT_TIME_MAX 6.0f
+#define PARTICLE_RAND_EMIT_TIME_MAX 3.0f
 #define PARTICLE_RAND_LIFE_TIME_MIN 1.0f
 #define PARTICLE_RAND_LIFE_TIME_MAX 3.0f
 
@@ -47,6 +47,7 @@ private:
 	// Shader Programs
 	GLuint m_SolidRectShader = 0;
 	GLuint m_SimpleParticleShader = 0;
+	GLuint m_Sin_Particle_Shader = 0;
 
 	// Random Engine
 	random_device m_Random_Device;
@@ -63,8 +64,12 @@ private:
 	// VBO Variable
 	GLuint m_VBO_Particle = 0;
 	GLuint m_Count_of_Particle_Vertice = 0;
+
 	GLuint m_VBO_ProxyGeo = 0;
 	GLuint m_Count_ProxyGeo = 0;
+
+	GLuint m_VBO_Sin_Particle = 0;
+	GLuint m_Count_of_Sin_Particle_Vertice = 0;
 
 private:
 	void Initialize(int windowSizeX, int windowSizeY);
@@ -82,6 +87,7 @@ private:
 	void CreateProxyGeometry();
 	void Create_Lec4_Particle_VBO(const int& particle_Count);
 	void Create_Lec5_Particle_VBO(const int& particle_Count);
+	void Create_Sin_Particle_VBO(const int& particle_Count);
 
 public:
 	Renderer(int windowSizeX, int windowSizeY);
@@ -94,5 +100,6 @@ public:
 	void Draw_ProxyGeometry();
 	void Draw_Lec4_Particle();
 	void Draw_Lec5_Particle();
+	void Draw_Sin_Particle();
 };
 
