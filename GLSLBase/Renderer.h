@@ -18,16 +18,32 @@
 
 using namespace std;
 
-#define PARTICLE_NUMS 2000
+// [Initial] ============================
+#define PARTICLE_NUMS 10000
 #define PARTICLE_HALF_SIZE 0.01f
+
+// [Random] =============================
 #define PARTICLE_RAND_POS_MIN -0.99f
 #define PARTICLE_RAND_POS_MAX 0.99f
 #define PARTICLE_RAND_VELOCITY_MIN -1.0f
 #define PARTICLE_RAND_VELOCITY_MAX 1.0f
-#define PARTICLE_RAND_EMIT_TIME_MIN 0.0f
-#define PARTICLE_RAND_EMIT_TIME_MAX 3.0f
+#define PARTICLE_RAND_START_TIME_MIN 0.0f
+#define PARTICLE_RAND_START_TIME_MAX 3.0f
 #define PARTICLE_RAND_LIFE_TIME_MIN 1.0f
 #define PARTICLE_RAND_LIFE_TIME_MAX 3.0f
+
+#define PARTICLE_RAND_RATIO_MIN 2.0f
+#define PARTICLE_RAND_RATIO_MAX 4.0f
+#define PARTICLE_RAND_AMPLITUDE_MIN -0.1f
+#define PARTICLE_RAND_AMPLITUDE_MAX 0.2f
+#define PARTICLE_RAND_VALUE_MIN 0.0f
+#define PARTICLE_RAND_VALUE_MAX 1.0f
+
+#define PARTICLE_RAND_COLOR_MIN 0.0f
+#define PARTICLE_RAND_COLOR_MAX 1.0f
+
+// =====================================-
+
 
 class Renderer
 {
@@ -54,9 +70,14 @@ private:
 	mt19937_64 m_Random_Seed;
 	uniform_real_distribution<> m_Random_Position;
 	uniform_real_distribution<> m_Random_Veclocity;
-	uniform_real_distribution<> m_Random_Emit_Time;
+	uniform_real_distribution<> m_Random_Start_Time;
 	uniform_real_distribution<> m_Random_Life_Time;
+	uniform_real_distribution<> m_Random_Ratio;
+	uniform_real_distribution<> m_Random_Amplitude;
+	uniform_real_distribution<> m_Random_Value;
 	
+	uniform_real_distribution<> m_Random_Color;
+
 	// Chrono Engine
 	chrono::system_clock::time_point m_Prev_Time;
 	chrono::system_clock::time_point m_Curr_Time;

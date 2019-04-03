@@ -52,11 +52,23 @@ void Renderer::Random_Device_Setting()
 	uniform_real_distribution<> temp_random_velo(PARTICLE_RAND_VELOCITY_MIN, PARTICLE_RAND_VELOCITY_MAX);
 	m_Random_Veclocity = temp_random_velo;
 
-	uniform_real_distribution<> temp_random_emit_time(PARTICLE_RAND_EMIT_TIME_MIN, PARTICLE_RAND_EMIT_TIME_MAX);
-	m_Random_Emit_Time = temp_random_emit_time;
+	uniform_real_distribution<> temp_random_start_time(PARTICLE_RAND_START_TIME_MIN, PARTICLE_RAND_START_TIME_MAX);
+	m_Random_Start_Time = temp_random_start_time;
 
 	uniform_real_distribution<> temp_random_life_time(PARTICLE_RAND_LIFE_TIME_MIN, PARTICLE_RAND_LIFE_TIME_MAX);
 	m_Random_Life_Time = temp_random_life_time;
+
+	uniform_real_distribution<> temp_random_ratio(PARTICLE_RAND_RATIO_MIN, PARTICLE_RAND_RATIO_MAX);
+	m_Random_Ratio = temp_random_ratio;
+
+	uniform_real_distribution<> temp_random_amplitude(PARTICLE_RAND_AMPLITUDE_MIN, PARTICLE_RAND_AMPLITUDE_MAX);
+	m_Random_Amplitude = temp_random_amplitude;
+
+	uniform_real_distribution<> temp_random_value(PARTICLE_RAND_VALUE_MIN, PARTICLE_RAND_VALUE_MAX);
+	m_Random_Value = temp_random_value;
+
+	uniform_real_distribution<> temp_random_color(PARTICLE_RAND_COLOR_MIN, PARTICLE_RAND_COLOR_MAX);
+	m_Random_Color = temp_random_color;
 }
 
 void Renderer::CreateVertexBufferObjects() // Renderer::Test()를 위한 VBO 생성기
@@ -115,7 +127,6 @@ void Renderer::Create_Lec4_Particle_VBO(const int& particle_Count)
 {
 	float temp_Pos_X, temp_Pos_Y;
 	float temp_Velocity_X, temp_Velocity_Y, temp_Velocity_Z;
-	float temp_Emit_Time, temp_Life_Time;
 
 	m_Count_of_Particle_Vertice = particle_Count * 6;
 	int array_Length = m_Count_of_Particle_Vertice * 6;
@@ -183,7 +194,7 @@ void Renderer::Create_Lec5_Particle_VBO(const int& particle_Count)
 {
 	float temp_Pos_X, temp_Pos_Y;
 	float temp_Velocity_X, temp_Velocity_Y, temp_Velocity_Z;
-	float temp_Emit_Time, temp_Life_Time; // Start_Time, Life_Time
+	float temp_Start_Time, temp_Life_Time; // Start_Time, Life_Time
 
 	// 파티클 조각 개수 = particle_Count
 	// 파티클 한조각의 정점 개수 = 6
@@ -199,7 +210,7 @@ void Renderer::Create_Lec5_Particle_VBO(const int& particle_Count)
 		temp_Velocity_X = m_Random_Veclocity(m_Random_Seed);
 		temp_Velocity_Y = m_Random_Veclocity(m_Random_Seed);
 		temp_Velocity_Z = 0.0f;
-		temp_Emit_Time = m_Random_Emit_Time(m_Random_Seed);
+		temp_Start_Time = m_Random_Start_Time(m_Random_Seed);
 		temp_Life_Time = m_Random_Life_Time(m_Random_Seed);
 
 		Particles_Vertice[i++] = temp_Pos_X - PARTICLE_HALF_SIZE; // Pos_X
@@ -208,7 +219,7 @@ void Renderer::Create_Lec5_Particle_VBO(const int& particle_Count)
 		Particles_Vertice[i++] = temp_Velocity_X; // Velo_X
 		Particles_Vertice[i++] = temp_Velocity_Y; // Velo_Y
 		Particles_Vertice[i++] = temp_Velocity_Z; // Velo_Z
-		Particles_Vertice[i++] = temp_Emit_Time; // Emit_Time
+		Particles_Vertice[i++] = temp_Start_Time; // Emit_Time
 		Particles_Vertice[i++] = temp_Life_Time; // Life_Time
 
 		Particles_Vertice[i++] = temp_Pos_X - PARTICLE_HALF_SIZE;
@@ -217,7 +228,7 @@ void Renderer::Create_Lec5_Particle_VBO(const int& particle_Count)
 		Particles_Vertice[i++] = temp_Velocity_X;
 		Particles_Vertice[i++] = temp_Velocity_Y;
 		Particles_Vertice[i++] = temp_Velocity_Z;
-		Particles_Vertice[i++] = temp_Emit_Time;
+		Particles_Vertice[i++] = temp_Start_Time;
 		Particles_Vertice[i++] = temp_Life_Time;
 
 		Particles_Vertice[i++] = temp_Pos_X + PARTICLE_HALF_SIZE;
@@ -226,7 +237,7 @@ void Renderer::Create_Lec5_Particle_VBO(const int& particle_Count)
 		Particles_Vertice[i++] = temp_Velocity_X;
 		Particles_Vertice[i++] = temp_Velocity_Y;
 		Particles_Vertice[i++] = temp_Velocity_Z;
-		Particles_Vertice[i++] = temp_Emit_Time;
+		Particles_Vertice[i++] = temp_Start_Time;
 		Particles_Vertice[i++] = temp_Life_Time;
 
 		Particles_Vertice[i++] = temp_Pos_X + PARTICLE_HALF_SIZE;
@@ -235,7 +246,7 @@ void Renderer::Create_Lec5_Particle_VBO(const int& particle_Count)
 		Particles_Vertice[i++] = temp_Velocity_X;
 		Particles_Vertice[i++] = temp_Velocity_Y;
 		Particles_Vertice[i++] = temp_Velocity_Z;
-		Particles_Vertice[i++] = temp_Emit_Time;
+		Particles_Vertice[i++] = temp_Start_Time;
 		Particles_Vertice[i++] = temp_Life_Time;
 
 		Particles_Vertice[i++] = temp_Pos_X - PARTICLE_HALF_SIZE;
@@ -244,7 +255,7 @@ void Renderer::Create_Lec5_Particle_VBO(const int& particle_Count)
 		Particles_Vertice[i++] = temp_Velocity_X;
 		Particles_Vertice[i++] = temp_Velocity_Y;
 		Particles_Vertice[i++] = temp_Velocity_Z;
-		Particles_Vertice[i++] = temp_Emit_Time;
+		Particles_Vertice[i++] = temp_Start_Time;
 		Particles_Vertice[i++] = temp_Life_Time;
 
 		Particles_Vertice[i++] = temp_Pos_X + PARTICLE_HALF_SIZE;
@@ -253,7 +264,7 @@ void Renderer::Create_Lec5_Particle_VBO(const int& particle_Count)
 		Particles_Vertice[i++] = temp_Velocity_X;
 		Particles_Vertice[i++] = temp_Velocity_Y;
 		Particles_Vertice[i++] = temp_Velocity_Z;
-		Particles_Vertice[i++] = temp_Emit_Time;
+		Particles_Vertice[i++] = temp_Start_Time;
 		Particles_Vertice[i] = temp_Life_Time;
 	}
 
@@ -352,56 +363,101 @@ void Renderer::CreateProxyGeometry()
 
 void Renderer::Create_Sin_Particle_VBO(const int& particle_Count)
 {
-	float temp_Pos_X, temp_Pos_Y;
-	float temp_Emit_Time, temp_Life_Time; // Start_Time, Life_Time
+	float temp_Pos_X, temp_Pos_Y; // 초기 위치
+	float temp_Velocity_X, temp_Velocity_Y, temp_Velocity_Z; // 속도
+	float temp_Start_Time, temp_Life_Time; // 시작 시간, 생명 주기
+	float temp_Amplitude, temp_Ratio; // 진폭, 진동 주기
+	float temp_Value; // 고유 값
 
 	// 파티클 조각 개수 = particle_Count
 	// 파티클 한조각의 정점 개수 = 6
-	// 정점당 데이터 개수 = 8
+	// 정점당 데이터 개수 = 11
 	m_Count_of_Sin_Particle_Vertice = particle_Count * 6;
-	int array_Length = m_Count_of_Sin_Particle_Vertice * 8;
+	int array_Length = m_Count_of_Sin_Particle_Vertice * 11;
 	float* Particles_Vertice = new float[array_Length];
 
 	for (int i = 0; i < array_Length; ++i)
 	{
-		temp_Emit_Time = m_Random_Emit_Time(m_Random_Seed);
+		temp_Velocity_X = m_Random_Veclocity(m_Random_Seed);
+		temp_Velocity_Y = m_Random_Veclocity(m_Random_Seed);
+		temp_Velocity_Z = m_Random_Veclocity(m_Random_Seed);
+		temp_Start_Time = m_Random_Start_Time(m_Random_Seed);
 		temp_Life_Time = m_Random_Life_Time(m_Random_Seed);
+		temp_Ratio = m_Random_Ratio(m_Random_Seed);
+		temp_Amplitude = m_Random_Amplitude(m_Random_Seed);
+		temp_Value = m_Random_Value(m_Random_Seed);
 
 		Particles_Vertice[i++] = -PARTICLE_HALF_SIZE; // Pos_X
 		Particles_Vertice[i++] = PARTICLE_HALF_SIZE; // Pos_Y
 		Particles_Vertice[i++] = 0.0f; // Pos_Z
-		Particles_Vertice[i++] = temp_Emit_Time; // Emit_Time
+		Particles_Vertice[i++] = temp_Velocity_X; // Velocity_X
+		Particles_Vertice[i++] = temp_Velocity_Y; // Velocity_Y
+		Particles_Vertice[i++] = temp_Velocity_Z; // Velocity_Z
+		Particles_Vertice[i++] = temp_Start_Time; // Emit_Time
 		Particles_Vertice[i++] = temp_Life_Time; // Life_Time
+		Particles_Vertice[i++] = temp_Ratio; // Ratio
+		Particles_Vertice[i++] = temp_Amplitude; // Amplitude
+		Particles_Vertice[i++] = temp_Value; // Value
 
 		Particles_Vertice[i++] = -PARTICLE_HALF_SIZE;
 		Particles_Vertice[i++] = -PARTICLE_HALF_SIZE;
 		Particles_Vertice[i++] = 0.0f;
-		Particles_Vertice[i++] = temp_Emit_Time;
+		Particles_Vertice[i++] = temp_Velocity_X;
+		Particles_Vertice[i++] = temp_Velocity_Y;
+		Particles_Vertice[i++] = temp_Velocity_Z;
+		Particles_Vertice[i++] = temp_Start_Time;
 		Particles_Vertice[i++] = temp_Life_Time;
+		Particles_Vertice[i++] = temp_Ratio;
+		Particles_Vertice[i++] = temp_Amplitude;
+		Particles_Vertice[i++] = temp_Value;
 
 		Particles_Vertice[i++] = PARTICLE_HALF_SIZE;
 		Particles_Vertice[i++] = PARTICLE_HALF_SIZE;
 		Particles_Vertice[i++] = 0.0f;
-		Particles_Vertice[i++] = temp_Emit_Time;
+		Particles_Vertice[i++] = temp_Velocity_X;
+		Particles_Vertice[i++] = temp_Velocity_Y;
+		Particles_Vertice[i++] = temp_Velocity_Z;
+		Particles_Vertice[i++] = temp_Start_Time;
 		Particles_Vertice[i++] = temp_Life_Time;
+		Particles_Vertice[i++] = temp_Ratio;
+		Particles_Vertice[i++] = temp_Amplitude;
+		Particles_Vertice[i++] = temp_Value;
 
 		Particles_Vertice[i++] = PARTICLE_HALF_SIZE;
 		Particles_Vertice[i++] = -PARTICLE_HALF_SIZE;
 		Particles_Vertice[i++] = 0.0f;
-		Particles_Vertice[i++] = temp_Emit_Time;
+		Particles_Vertice[i++] = temp_Velocity_X;
+		Particles_Vertice[i++] = temp_Velocity_Y;
+		Particles_Vertice[i++] = temp_Velocity_Z;
+		Particles_Vertice[i++] = temp_Start_Time;
 		Particles_Vertice[i++] = temp_Life_Time;
+		Particles_Vertice[i++] = temp_Ratio;
+		Particles_Vertice[i++] = temp_Amplitude;
+		Particles_Vertice[i++] = temp_Value;
 
 		Particles_Vertice[i++] = PARTICLE_HALF_SIZE;
 		Particles_Vertice[i++] = PARTICLE_HALF_SIZE;
 		Particles_Vertice[i++] = 0.0f;
-		Particles_Vertice[i++] = temp_Emit_Time;
+		Particles_Vertice[i++] = temp_Velocity_X;
+		Particles_Vertice[i++] = temp_Velocity_Y;
+		Particles_Vertice[i++] = temp_Velocity_Z;
+		Particles_Vertice[i++] = temp_Start_Time;
 		Particles_Vertice[i++] = temp_Life_Time;
+		Particles_Vertice[i++] = temp_Ratio;
+		Particles_Vertice[i++] = temp_Amplitude;
+		Particles_Vertice[i++] = temp_Value;
 
 		Particles_Vertice[i++] = -PARTICLE_HALF_SIZE;
 		Particles_Vertice[i++] = -PARTICLE_HALF_SIZE;
 		Particles_Vertice[i++] = 0.0f;
-		Particles_Vertice[i++] = temp_Emit_Time;
-		Particles_Vertice[i] = temp_Life_Time;
+		Particles_Vertice[i++] = temp_Velocity_X;
+		Particles_Vertice[i++] = temp_Velocity_Y;
+		Particles_Vertice[i++] = temp_Velocity_Z;
+		Particles_Vertice[i++] = temp_Start_Time;
+		Particles_Vertice[i++] = temp_Life_Time;
+		Particles_Vertice[i++] = temp_Ratio;
+		Particles_Vertice[i++] = temp_Amplitude;
+		Particles_Vertice[i] = temp_Value;
 	}
 
 	glGenBuffers(1, &m_VBO_Sin_Particle);
@@ -753,27 +809,46 @@ void Renderer::Draw_ProxyGeometry()
 void Renderer::Draw_Sin_Particle()
 {
 	GLuint shader_ID = m_Sin_Particle_Shader;
-
 	glUseProgram(shader_ID);
 
+	// ===============================================
+
 	GLuint u_Time = glGetUniformLocation(shader_ID, "u_Time");
-	GLuint u_Repeat = glGetUniformLocation(shader_ID, "u_Repeat");
 	glUniform1f(u_Time, m_Time);
 	m_Time += 0.01f;
+	
+	// ===============================================
 
 	GLuint a_Position = glGetAttribLocation(shader_ID, "a_Position");
-	GLuint a_Emit_and_Life_Time = glGetAttribLocation(shader_ID, "a_Emit_and_Life_Time");
+	GLuint a_Velocity = glGetAttribLocation(shader_ID, "a_Velocity");
+	GLuint a_Start_and_Life_Time = glGetAttribLocation(shader_ID, "a_Start_and_Life_Time");
+	GLuint a_Ratio_and_Amplitude = glGetAttribLocation(shader_ID, "a_Ratio_and_Amplitude");
+	GLuint a_Value = glGetAttribLocation(shader_ID, "a_Value");
 
 	glEnableVertexAttribArray(a_Position);
-	glEnableVertexAttribArray(a_Emit_and_Life_Time);
+	glEnableVertexAttribArray(a_Velocity);
+	glEnableVertexAttribArray(a_Start_and_Life_Time);
+	glEnableVertexAttribArray(a_Ratio_and_Amplitude);
+	glEnableVertexAttribArray(a_Value);
+
+	// ===============================================
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_Sin_Particle);
-	glVertexAttribPointer(a_Position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, 0);
-	glVertexAttribPointer(a_Emit_and_Life_Time, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (GLvoid*)(sizeof(float) * 6));
+	glVertexAttribPointer(a_Position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 11, 0);
+	glVertexAttribPointer(a_Velocity, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 11, (GLvoid*)(sizeof(float) * 3));
+	glVertexAttribPointer(a_Start_and_Life_Time, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 11, (GLvoid*)(sizeof(float) * 6));
+	glVertexAttribPointer(a_Ratio_and_Amplitude, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 11, (GLvoid*)(sizeof(float) * 8));
+	glVertexAttribPointer(a_Value, 1, GL_FLOAT, GL_FALSE, sizeof(float) * 11, (GLvoid*)(sizeof(float) * 10));
 
 	glDrawArrays(GL_TRIANGLES, 0, m_Count_of_Sin_Particle_Vertice);
+
+	// ===============================================
+
 	glDisableVertexAttribArray(a_Position);
-	glDisableVertexAttribArray(a_Emit_and_Life_Time);
+	glDisableVertexAttribArray(a_Velocity);
+	glDisableVertexAttribArray(a_Start_and_Life_Time);
+	glDisableVertexAttribArray(a_Ratio_and_Amplitude);
+	glDisableVertexAttribArray(a_Value);
 }
 
 
