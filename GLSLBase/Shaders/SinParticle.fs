@@ -1,8 +1,25 @@
 #version 450
 
-layout(location = 0) out vec4 FragColor;
+in vec4 v_Color;
+in vec3 v_Original_Pos;
+in float v_Radius;
+
+out vec4 FragColor;
 
 void main()
 {
-	FragColor = vec4(0.0f, 0.7f, 0.0f, 1.0f);
+	vec4 new_Color;
+	float distance = sqrt(v_Original_Pos.x * v_Original_Pos.x + v_Original_Pos.y * v_Original_Pos.y);
+
+	if (distance < v_Radius)
+	{
+		new_Color = v_Color;
+		new_Color.a = pow(1 - distance / v_Radius, 7);
+	}
+	else
+	{
+		new_Color = vec4(0.0f);
+	}
+
+	FragColor = new_Color;
 }

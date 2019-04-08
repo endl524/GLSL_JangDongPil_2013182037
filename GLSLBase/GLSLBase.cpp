@@ -17,8 +17,8 @@ but WITHOUT ANY WARRANTY.
 
 Renderer *g_Renderer = NULL;
 
-int g_WindowSizeX = 500;
-int g_WindowSizeY = 500;
+int g_WindowSizeX = 600;
+int g_WindowSizeY = 600;
 
 void RenderScene(void)
 {

@@ -20,7 +20,7 @@ using namespace std;
 
 // [Initial] ============================
 #define PARTICLE_NUMS 10000
-#define PARTICLE_HALF_SIZE 0.01f
+#define PARTICLE_HALF_SIZE 0.1f
 
 // [Random] =============================
 #define PARTICLE_RAND_POS_MIN -0.99f
@@ -28,9 +28,9 @@ using namespace std;
 #define PARTICLE_RAND_VELOCITY_MIN -1.0f
 #define PARTICLE_RAND_VELOCITY_MAX 1.0f
 #define PARTICLE_RAND_START_TIME_MIN 0.0f
-#define PARTICLE_RAND_START_TIME_MAX 3.0f
-#define PARTICLE_RAND_LIFE_TIME_MIN 1.0f
-#define PARTICLE_RAND_LIFE_TIME_MAX 3.0f
+#define PARTICLE_RAND_START_TIME_MAX 2.0f
+#define PARTICLE_RAND_LIFE_TIME_MIN 0.5f
+#define PARTICLE_RAND_LIFE_TIME_MAX 1.0f
 
 #define PARTICLE_RAND_RATIO_MIN 2.0f
 #define PARTICLE_RAND_RATIO_MAX 4.0f

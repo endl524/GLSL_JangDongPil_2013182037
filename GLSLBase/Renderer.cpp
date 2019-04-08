@@ -368,12 +368,13 @@ void Renderer::Create_Sin_Particle_VBO(const int& particle_Count)
 	float temp_Start_Time, temp_Life_Time; // 시작 시간, 생명 주기
 	float temp_Amplitude, temp_Ratio; // 진폭, 진동 주기
 	float temp_Value; // 고유 값
+	float temp_Color_R, temp_Color_G, temp_Color_B, temp_Color_A; // 색상
 
 	// 파티클 조각 개수 = particle_Count
 	// 파티클 한조각의 정점 개수 = 6
 	// 정점당 데이터 개수 = 11
 	m_Count_of_Sin_Particle_Vertice = particle_Count * 6;
-	int array_Length = m_Count_of_Sin_Particle_Vertice * 11;
+	int array_Length = m_Count_of_Sin_Particle_Vertice * 15;
 	float* Particles_Vertice = new float[array_Length];
 
 	for (int i = 0; i < array_Length; ++i)
@@ -386,6 +387,11 @@ void Renderer::Create_Sin_Particle_VBO(const int& particle_Count)
 		temp_Ratio = m_Random_Ratio(m_Random_Seed);
 		temp_Amplitude = m_Random_Amplitude(m_Random_Seed);
 		temp_Value = m_Random_Value(m_Random_Seed);
+		temp_Color_R = m_Random_Color(m_Random_Seed);
+		temp_Color_G = m_Random_Color(m_Random_Seed);
+		temp_Color_B = m_Random_Color(m_Random_Seed);
+		temp_Color_A = m_Random_Color(m_Random_Seed);
+
 
 		Particles_Vertice[i++] = -PARTICLE_HALF_SIZE; // Pos_X
 		Particles_Vertice[i++] = PARTICLE_HALF_SIZE; // Pos_Y
@@ -398,6 +404,10 @@ void Renderer::Create_Sin_Particle_VBO(const int& particle_Count)
 		Particles_Vertice[i++] = temp_Ratio; // Ratio
 		Particles_Vertice[i++] = temp_Amplitude; // Amplitude
 		Particles_Vertice[i++] = temp_Value; // Value
+		Particles_Vertice[i++] = temp_Color_R; // Color R
+		Particles_Vertice[i++] = temp_Color_G; // Color G
+		Particles_Vertice[i++] = temp_Color_B; // Color B
+		Particles_Vertice[i++] = temp_Color_A; // Color A
 
 		Particles_Vertice[i++] = -PARTICLE_HALF_SIZE;
 		Particles_Vertice[i++] = -PARTICLE_HALF_SIZE;
@@ -410,6 +420,10 @@ void Renderer::Create_Sin_Particle_VBO(const int& particle_Count)
 		Particles_Vertice[i++] = temp_Ratio;
 		Particles_Vertice[i++] = temp_Amplitude;
 		Particles_Vertice[i++] = temp_Value;
+		Particles_Vertice[i++] = temp_Color_R;
+		Particles_Vertice[i++] = temp_Color_G;
+		Particles_Vertice[i++] = temp_Color_B;
+		Particles_Vertice[i++] = temp_Color_A;
 
 		Particles_Vertice[i++] = PARTICLE_HALF_SIZE;
 		Particles_Vertice[i++] = PARTICLE_HALF_SIZE;
@@ -422,6 +436,10 @@ void Renderer::Create_Sin_Particle_VBO(const int& particle_Count)
 		Particles_Vertice[i++] = temp_Ratio;
 		Particles_Vertice[i++] = temp_Amplitude;
 		Particles_Vertice[i++] = temp_Value;
+		Particles_Vertice[i++] = temp_Color_R;
+		Particles_Vertice[i++] = temp_Color_G;
+		Particles_Vertice[i++] = temp_Color_B;
+		Particles_Vertice[i++] = temp_Color_A;
 
 		Particles_Vertice[i++] = PARTICLE_HALF_SIZE;
 		Particles_Vertice[i++] = -PARTICLE_HALF_SIZE;
@@ -434,6 +452,10 @@ void Renderer::Create_Sin_Particle_VBO(const int& particle_Count)
 		Particles_Vertice[i++] = temp_Ratio;
 		Particles_Vertice[i++] = temp_Amplitude;
 		Particles_Vertice[i++] = temp_Value;
+		Particles_Vertice[i++] = temp_Color_R;
+		Particles_Vertice[i++] = temp_Color_G;
+		Particles_Vertice[i++] = temp_Color_B;
+		Particles_Vertice[i++] = temp_Color_A;
 
 		Particles_Vertice[i++] = PARTICLE_HALF_SIZE;
 		Particles_Vertice[i++] = PARTICLE_HALF_SIZE;
@@ -446,6 +468,10 @@ void Renderer::Create_Sin_Particle_VBO(const int& particle_Count)
 		Particles_Vertice[i++] = temp_Ratio;
 		Particles_Vertice[i++] = temp_Amplitude;
 		Particles_Vertice[i++] = temp_Value;
+		Particles_Vertice[i++] = temp_Color_R;
+		Particles_Vertice[i++] = temp_Color_G;
+		Particles_Vertice[i++] = temp_Color_B;
+		Particles_Vertice[i++] = temp_Color_A;
 
 		Particles_Vertice[i++] = -PARTICLE_HALF_SIZE;
 		Particles_Vertice[i++] = -PARTICLE_HALF_SIZE;
@@ -457,7 +483,11 @@ void Renderer::Create_Sin_Particle_VBO(const int& particle_Count)
 		Particles_Vertice[i++] = temp_Life_Time;
 		Particles_Vertice[i++] = temp_Ratio;
 		Particles_Vertice[i++] = temp_Amplitude;
-		Particles_Vertice[i] = temp_Value;
+		Particles_Vertice[i++] = temp_Value;
+		Particles_Vertice[i++] = temp_Color_R;
+		Particles_Vertice[i++] = temp_Color_G;
+		Particles_Vertice[i++] = temp_Color_B;
+		Particles_Vertice[i] = temp_Color_A;
 	}
 
 	glGenBuffers(1, &m_VBO_Sin_Particle);
@@ -808,6 +838,11 @@ void Renderer::Draw_ProxyGeometry()
 
 void Renderer::Draw_Sin_Particle()
 {
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// ===============================================
+
 	GLuint shader_ID = m_Sin_Particle_Shader;
 	glUseProgram(shader_ID);
 
@@ -824,21 +859,24 @@ void Renderer::Draw_Sin_Particle()
 	GLuint a_Start_and_Life_Time = glGetAttribLocation(shader_ID, "a_Start_and_Life_Time");
 	GLuint a_Ratio_and_Amplitude = glGetAttribLocation(shader_ID, "a_Ratio_and_Amplitude");
 	GLuint a_Value = glGetAttribLocation(shader_ID, "a_Value");
+	GLuint a_Color = glGetAttribLocation(shader_ID, "a_Color");
 
 	glEnableVertexAttribArray(a_Position);
 	glEnableVertexAttribArray(a_Velocity);
 	glEnableVertexAttribArray(a_Start_and_Life_Time);
 	glEnableVertexAttribArray(a_Ratio_and_Amplitude);
 	glEnableVertexAttribArray(a_Value);
+	glEnableVertexAttribArray(a_Color);
 
 	// ===============================================
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_Sin_Particle);
-	glVertexAttribPointer(a_Position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 11, 0);
-	glVertexAttribPointer(a_Velocity, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 11, (GLvoid*)(sizeof(float) * 3));
-	glVertexAttribPointer(a_Start_and_Life_Time, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 11, (GLvoid*)(sizeof(float) * 6));
-	glVertexAttribPointer(a_Ratio_and_Amplitude, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 11, (GLvoid*)(sizeof(float) * 8));
-	glVertexAttribPointer(a_Value, 1, GL_FLOAT, GL_FALSE, sizeof(float) * 11, (GLvoid*)(sizeof(float) * 10));
+	glVertexAttribPointer(a_Position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 15, 0);
+	glVertexAttribPointer(a_Velocity, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 15, (GLvoid*)(sizeof(float) * 3));
+	glVertexAttribPointer(a_Start_and_Life_Time, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 15, (GLvoid*)(sizeof(float) * 6));
+	glVertexAttribPointer(a_Ratio_and_Amplitude, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 15, (GLvoid*)(sizeof(float) * 8));
+	glVertexAttribPointer(a_Value, 1, GL_FLOAT, GL_FALSE, sizeof(float) * 15, (GLvoid*)(sizeof(float) * 10));
+	glVertexAttribPointer(a_Color, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 15, (GLvoid*)(sizeof(float) * 11));
 
 	glDrawArrays(GL_TRIANGLES, 0, m_Count_of_Sin_Particle_Vertice);
 
@@ -849,6 +887,7 @@ void Renderer::Draw_Sin_Particle()
 	glDisableVertexAttribArray(a_Start_and_Life_Time);
 	glDisableVertexAttribArray(a_Ratio_and_Amplitude);
 	glDisableVertexAttribArray(a_Value);
+	glDisableVertexAttribArray(a_Color);
 }
 
 
