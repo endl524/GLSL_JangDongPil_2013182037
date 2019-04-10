@@ -173,6 +173,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\Rectangle.fs" />
+    <None Include="Shaders\Rectangle.vs" />
     <None Include="Shaders\SinParticle.fs" />
     <None Include="Shaders\SinParticle.vs" />
     <None Include="Shaders\SimpleParticle.fs" />

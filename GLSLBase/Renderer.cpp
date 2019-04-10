@@ -10,7 +10,6 @@ Renderer::Renderer(int windowSizeX, int windowSizeY)
 	Initialize(windowSizeX, windowSizeY);
 }
 
-
 Renderer::~Renderer()
 {
 }
@@ -25,20 +24,18 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_SolidRectShader = CompileShaders("./Shaders/SolidRect.vs", "./Shaders/SolidRect.fs");
 	m_SimpleParticleShader = CompileShaders("./Shaders/SimpleParticle.vs", "./Shaders/SimpleParticle.fs");
 	m_Sin_Particle_Shader = CompileShaders("./Shaders/SinParticle.vs", "./Shaders/SinParticle.fs");
+	m_Rectangle_Shader = CompileShaders("./Shaders/Rectangle.vs", "./Shaders/Rectangle.fs");
 
 	//Random Device Setting
 	Random_Device_Setting();
 
-	//Create VBOs
-	//CreateVertexBufferObjects();
-
-	//Create Particle
-	//Create_Lec4_Particle_VBO(PARTICLE_NUMS);
-	//Create_Lec5_Particle_VBO(PARTICLE_NUMS);
+	//Create VBO
+	Create_Vertex_Buffer_Objects();
+	Create_Proxy_Geometry();
+	Create_Lec4_Particle_VBO(PARTICLE_NUMS);
+	Create_Lec5_Particle_VBO(PARTICLE_NUMS);
 	Create_Sin_Particle_VBO(PARTICLE_NUMS);
-
-	//Create Proxy Geometry
-	//CreateProxyGeometry();
+	Create_Rectangle_VBO();
 }
 
 void Renderer::Random_Device_Setting()
@@ -71,7 +68,7 @@ void Renderer::Random_Device_Setting()
 	m_Random_Color = temp_random_color;
 }
 
-void Renderer::CreateVertexBufferObjects() // Renderer::Test()를 위한 VBO 생성기
+void Renderer::Create_Vertex_Buffer_Objects() // Renderer::Test()를 위한 VBO 생성기
 {
 	float size = 0.02f;
 	float rect[]
@@ -121,6 +118,92 @@ void Renderer::CreateVertexBufferObjects() // Renderer::Test()를 위한 VBO 생성기
 	glGenBuffers(1, &m_VBORectColor);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBORectColor);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(color), color, GL_STATIC_DRAW);
+}
+
+void Renderer::Create_Proxy_Geometry()
+{
+	float basePosX = -0.5f;
+	float basePosY = -0.5f;
+	float targetPosX = 0.5f;
+	float targetPosY = 0.5f;
+
+	int pointCountX = 32;
+	int pointCountY = 32;
+
+	float width = targetPosX - basePosX;
+	float height = targetPosY - basePosY;
+
+	float* point = new float[pointCountX * pointCountY * 2];
+	float* vertices = new float[(pointCountX - 1) * (pointCountY - 1) * 2 * 3 * 3];
+	m_Count_ProxyGeo = (pointCountX - 1) * (pointCountY - 1) * 2 * 3;
+
+	// prepare points
+	for (int x = 0; x < pointCountX; ++x)
+	{
+		for (int y = 0; y < pointCountY; ++y)
+		{
+			point[(y * pointCountX + x) * 2 + 0] = basePosX + width * (x / (float)(pointCountX - 1));
+			point[(y * pointCountX + x) * 2 + 1] = basePosY + height * (y / (float)(pointCountY - 1));
+		}
+	}
+
+	// Make Triangles
+	int vertIndex = 0;
+	for (int x = 0; x < pointCountX - 1; ++x)
+	{
+		for (int y = 0; y < pointCountY - 1; ++y)
+		{
+			// Triangle part 1
+			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 0];
+			++vertIndex;
+			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 1];
+			++vertIndex;
+			vertices[vertIndex] = 0.0f;
+			++vertIndex;
+
+			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 0];
+			++vertIndex;
+			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 1];
+			++vertIndex;
+			vertices[vertIndex] = 0.0f;
+			++vertIndex;
+
+			vertices[vertIndex] = point[((y + 1) * pointCountX + x) * 2 + 0];
+			++vertIndex;
+			vertices[vertIndex] = point[((y + 1) * pointCountX + x) * 2 + 1];
+			++vertIndex;
+			vertices[vertIndex] = 0.0f;
+			++vertIndex;
+
+			// Triangle part 2
+			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 0];
+			++vertIndex;
+			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 1];
+			++vertIndex;
+			vertices[vertIndex] = 0.0f;
+			++vertIndex;
+
+			vertices[vertIndex] = point[(y * pointCountX + (x + 1)) * 2 + 0];
+			++vertIndex;
+			vertices[vertIndex] = point[(y * pointCountX + (x + 1)) * 2 + 1];
+			++vertIndex;
+			vertices[vertIndex] = 0.0f;
+			++vertIndex;
+
+			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 0];
+			++vertIndex;
+			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 1];
+			++vertIndex;
+			vertices[vertIndex] = 0.0f;
+			++vertIndex;
+		}
+	}
+
+	glGenBuffers(1, &m_VBO_ProxyGeo);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_ProxyGeo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * (pointCountX - 1) * (pointCountY - 1) * 2 * 3 * 3, vertices, GL_STATIC_DRAW);
+
+	delete[] vertices;
 }
 
 void Renderer::Create_Lec4_Particle_VBO(const int& particle_Count)
@@ -275,92 +358,6 @@ void Renderer::Create_Lec5_Particle_VBO(const int& particle_Count)
 	delete[] Particles_Vertice;
 }
 
-void Renderer::CreateProxyGeometry()
-{
-	float basePosX = -0.5f;
-	float basePosY = -0.5f;
-	float targetPosX = 0.5f;
-	float targetPosY = 0.5f;
-
-	int pointCountX = 32;
-	int pointCountY = 32;
-
-	float width = targetPosX - basePosX;
-	float height = targetPosY - basePosY;
-
-	float* point = new float[pointCountX * pointCountY * 2];
-	float* vertices = new float[(pointCountX - 1) * (pointCountY - 1) * 2 * 3 * 3];
-	m_Count_ProxyGeo = (pointCountX - 1) * (pointCountY - 1) * 2 * 3;
-
-	// prepare points
-	for (int x = 0; x < pointCountX; ++x)
-	{
-		for (int y = 0; y < pointCountY; ++y)
-		{
-			point[(y * pointCountX + x) * 2 + 0] = basePosX + width * (x / (float)(pointCountX - 1));
-			point[(y * pointCountX + x) * 2 + 1] = basePosY + height * (y / (float)(pointCountY - 1));
-		}
-	}
-
-	// Make Triangles
-	int vertIndex = 0;
-	for (int x = 0; x < pointCountX - 1; ++x)
-	{
-		for (int y = 0; y < pointCountY - 1; ++y)
-		{
-			// Triangle part 1
-			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 0];
-			++vertIndex;
-			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 1];
-			++vertIndex;
-			vertices[vertIndex] = 0.0f;
-			++vertIndex;
-
-			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 0];
-			++vertIndex;
-			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 1];
-			++vertIndex;
-			vertices[vertIndex] = 0.0f;
-			++vertIndex;
-
-			vertices[vertIndex] = point[((y + 1) * pointCountX + x) * 2 + 0];
-			++vertIndex;
-			vertices[vertIndex] = point[((y + 1) * pointCountX + x) * 2 + 1];
-			++vertIndex;
-			vertices[vertIndex] = 0.0f;
-			++vertIndex;
-
-			// Triangle part 2
-			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 0];
-			++vertIndex;
-			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 1];
-			++vertIndex;
-			vertices[vertIndex] = 0.0f;
-			++vertIndex;
-
-			vertices[vertIndex] = point[(y * pointCountX + (x + 1)) * 2 + 0];
-			++vertIndex;
-			vertices[vertIndex] = point[(y * pointCountX + (x + 1)) * 2 + 1];
-			++vertIndex;
-			vertices[vertIndex] = 0.0f;
-			++vertIndex;
-
-			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 0];
-			++vertIndex;
-			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 1];
-			++vertIndex;
-			vertices[vertIndex] = 0.0f;
-			++vertIndex;
-		}
-	}
-
-	glGenBuffers(1, &m_VBO_ProxyGeo);
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_ProxyGeo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * (pointCountX - 1) * (pointCountY - 1) * 2 * 3 * 3, vertices, GL_STATIC_DRAW);
-
-	delete[] vertices;
-}
-
 void Renderer::Create_Sin_Particle_VBO(const int& particle_Count)
 {
 	float temp_Pos_X, temp_Pos_Y; // 초기 위치
@@ -496,6 +493,90 @@ void Renderer::Create_Sin_Particle_VBO(const int& particle_Count)
 
 	delete[] Particles_Vertice;
 }
+
+void Renderer::Create_Rectangle_VBO()
+{
+	float temp_Pos_X, temp_Pos_Y; // 초기 위치
+	float temp_Color_R = 1.0f, temp_Color_G = 1.0f, temp_Color_B = 1.0f, temp_Color_A = 1.0f; // 색상
+
+	// 파티클 조각 개수 = particle_Count
+	// 파티클 한조각의 정점 개수 = 6
+	// 정점당 데이터 개수 = 9
+	int array_Length = 6 * 9;
+	float* Particles_Vertice = new float[array_Length];
+
+	for (int i = 0; i < array_Length; ++i)
+	{
+		Particles_Vertice[i++] = -RECTANGLE_HALF_SIZE; // Pos_X
+		Particles_Vertice[i++] = RECTANGLE_HALF_SIZE; // Pos_Y
+		Particles_Vertice[i++] = 0.0f; // Pos_Z
+		Particles_Vertice[i++] = temp_Color_R; // Color R
+		Particles_Vertice[i++] = temp_Color_G; // Color G
+		Particles_Vertice[i++] = temp_Color_B; // Color B
+		Particles_Vertice[i++] = temp_Color_A; // Color A
+		Particles_Vertice[i++] = 0.0f;
+		Particles_Vertice[i++] = 1.0f;
+
+		Particles_Vertice[i++] = -RECTANGLE_HALF_SIZE;
+		Particles_Vertice[i++] = -RECTANGLE_HALF_SIZE;
+		Particles_Vertice[i++] = 0.0f;
+		Particles_Vertice[i++] = temp_Color_R;
+		Particles_Vertice[i++] = temp_Color_G;
+		Particles_Vertice[i++] = temp_Color_B;
+		Particles_Vertice[i++] = temp_Color_A;
+		Particles_Vertice[i++] = 0.0f;
+		Particles_Vertice[i++] = 0.0f;
+
+		Particles_Vertice[i++] = RECTANGLE_HALF_SIZE;
+		Particles_Vertice[i++] = RECTANGLE_HALF_SIZE;
+		Particles_Vertice[i++] = 0.0f;
+		Particles_Vertice[i++] = temp_Color_R;
+		Particles_Vertice[i++] = temp_Color_G;
+		Particles_Vertice[i++] = temp_Color_B;
+		Particles_Vertice[i++] = temp_Color_A;
+		Particles_Vertice[i++] = 1.0f;
+		Particles_Vertice[i++] = 1.0f;
+
+		Particles_Vertice[i++] = RECTANGLE_HALF_SIZE;
+		Particles_Vertice[i++] = -RECTANGLE_HALF_SIZE;
+		Particles_Vertice[i++] = 0.0f;
+		Particles_Vertice[i++] = temp_Color_R;
+		Particles_Vertice[i++] = temp_Color_G;
+		Particles_Vertice[i++] = temp_Color_B;
+		Particles_Vertice[i++] = temp_Color_A;
+		Particles_Vertice[i++] = 1.0f;
+		Particles_Vertice[i++] = 0.0f;
+
+		Particles_Vertice[i++] = RECTANGLE_HALF_SIZE;
+		Particles_Vertice[i++] = RECTANGLE_HALF_SIZE;
+		Particles_Vertice[i++] = 0.0f;
+		Particles_Vertice[i++] = temp_Color_R;
+		Particles_Vertice[i++] = temp_Color_G;
+		Particles_Vertice[i++] = temp_Color_B;
+		Particles_Vertice[i++] = temp_Color_A;
+		Particles_Vertice[i++] = 1.0f;
+		Particles_Vertice[i++] = 1.0f;
+
+		Particles_Vertice[i++] = -RECTANGLE_HALF_SIZE;
+		Particles_Vertice[i++] = -RECTANGLE_HALF_SIZE;
+		Particles_Vertice[i++] = 0.0f;
+		Particles_Vertice[i++] = temp_Color_R;
+		Particles_Vertice[i++] = temp_Color_G;
+		Particles_Vertice[i++] = temp_Color_B;
+		Particles_Vertice[i++] = temp_Color_A;
+		Particles_Vertice[i++] = 0.0f;
+		Particles_Vertice[i] = 0.0f;
+	}
+
+	glGenBuffers(1, &m_VBO_Rectangle);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_Rectangle);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * array_Length, Particles_Vertice, GL_STATIC_DRAW);
+
+	delete[] Particles_Vertice;
+}
+
+
+//=================================================================
 
 
 void Renderer::AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType)
@@ -724,6 +805,10 @@ GLuint Renderer::CreateBmpTexture(char * filePath)
 	return temp;
 }
 
+
+//=================================================================
+
+
 void Renderer::Test()
 {
 	GLuint shader_ID = m_SolidRectShader;
@@ -820,7 +905,7 @@ void Renderer::Draw_Lec5_Particle()
 	glDisableVertexAttribArray(a_Emit_and_Life_Time);
 }
 
-void Renderer::Draw_ProxyGeometry()
+void Renderer::Draw_Proxy_Geometry()
 {
 	GLuint shader_ID = m_SolidRectShader;
 
@@ -890,6 +975,47 @@ void Renderer::Draw_Sin_Particle()
 	glDisableVertexAttribArray(a_Color);
 }
 
+void Renderer::Draw_Rectangle()
+{
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// ===============================================
+
+	GLuint shader_ID = m_Rectangle_Shader;
+	glUseProgram(shader_ID);
+
+	// ===============================================
+
+	GLuint u_Time = glGetUniformLocation(shader_ID, "u_Time");
+	glUniform1f(u_Time, m_Time);
+	m_Time += 0.01f;
+
+	// ===============================================
+
+	GLuint a_Position = glGetAttribLocation(shader_ID, "a_Position");
+	GLuint a_Color = glGetAttribLocation(shader_ID, "a_Color");
+	GLuint a_UV = glGetAttribLocation(shader_ID, "a_UV");
+
+	glEnableVertexAttribArray(a_Position);
+	glEnableVertexAttribArray(a_Color);
+	glEnableVertexAttribArray(a_UV);
+
+	// ===============================================
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_Rectangle);
+	glVertexAttribPointer(a_Position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 9, 0);
+	glVertexAttribPointer(a_Color, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 9, (GLvoid*)(sizeof(float) * 3));
+	glVertexAttribPointer(a_UV, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 9, (GLvoid*)(sizeof(float) * 7));
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	// ===============================================
+
+	glDisableVertexAttribArray(a_Position);
+	glDisableVertexAttribArray(a_Color);
+	glDisableVertexAttribArray(a_UV);
+}
 
 
 

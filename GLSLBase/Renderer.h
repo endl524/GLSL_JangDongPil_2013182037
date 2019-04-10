@@ -21,6 +21,7 @@ using namespace std;
 // [Initial] ============================
 #define PARTICLE_NUMS 10000
 #define PARTICLE_HALF_SIZE 0.1f
+#define RECTANGLE_HALF_SIZE 0.5f
 
 // [Random] =============================
 #define PARTICLE_RAND_POS_MIN -0.99f
@@ -42,28 +43,33 @@ using namespace std;
 #define PARTICLE_RAND_COLOR_MIN 0.0f
 #define PARTICLE_RAND_COLOR_MAX 1.0f
 
-// =====================================-
+
+
+// [end] ===================================================
 
 
 class Renderer
 {
 private:
+	
 	bool m_Initialized = false;
 
+	// Window Size
 	unsigned int m_WindowSizeX = 0;
 	unsigned int m_WindowSizeY = 0;
 
-	GLuint m_VBORect = 0;
-	GLuint m_VBORectColor = 0;
 
 	// Global Variable
 	float m_Scale = 0.0f;
 	float m_Time = 0.0f;
 
+
 	// Shader Programs
 	GLuint m_SolidRectShader = 0;
 	GLuint m_SimpleParticleShader = 0;
 	GLuint m_Sin_Particle_Shader = 0;
+	GLuint m_Rectangle_Shader = 0;
+
 
 	// Random Engine
 	random_device m_Random_Device;
@@ -75,14 +81,18 @@ private:
 	uniform_real_distribution<> m_Random_Ratio;
 	uniform_real_distribution<> m_Random_Amplitude;
 	uniform_real_distribution<> m_Random_Value;
-	
 	uniform_real_distribution<> m_Random_Color;
+
 
 	// Chrono Engine
 	chrono::system_clock::time_point m_Prev_Time;
 	chrono::system_clock::time_point m_Curr_Time;
 
+
 	// VBO Variable
+	GLuint m_VBORect = 0;
+	GLuint m_VBORectColor = 0;
+
 	GLuint m_VBO_Particle = 0;
 	GLuint m_Count_of_Particle_Vertice = 0;
 
@@ -92,35 +102,64 @@ private:
 	GLuint m_VBO_Sin_Particle = 0;
 	GLuint m_Count_of_Sin_Particle_Vertice = 0;
 
+	GLuint m_VBO_Rectangle = 0;
+
+
+
+	// [end] ===================================================
+
+
+
 private:
+	
+	// Initializer
 	void Initialize(int windowSizeX, int windowSizeY);
+	void Random_Device_Setting();
+
+
+	// Utilities
 	bool ReadFile(char* filename, std::string *target);
 	void AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType);
 	GLuint CompileShaders(char* filenameVS, char* filenameFS);
-	void CreateVertexBufferObjects(); 
-	
 	unsigned char * Renderer::loadBMPRaw(const char * imagepath, unsigned int& outWidth, unsigned int& outHeight);
 
-	// =============================
-	
-	void Random_Device_Setting();
-	
-	void CreateProxyGeometry();
+
+	// VBO Create
+	void Create_Vertex_Buffer_Objects();
+	void Create_Proxy_Geometry();
 	void Create_Lec4_Particle_VBO(const int& particle_Count);
 	void Create_Lec5_Particle_VBO(const int& particle_Count);
 	void Create_Sin_Particle_VBO(const int& particle_Count);
+	void Create_Rectangle_VBO();
+
+
+
+	// [end] ===================================================
+
+
 
 public:
+
+	// Class Create & Destroy
 	Renderer(int windowSizeX, int windowSizeY);
 	~Renderer();
 
+
+	// Texture Create Method
 	GLuint CreatePngTexture(char * filePath);
 	GLuint CreateBmpTexture(char * filePath);
 
+
+	// Draw Methods
 	void Test();
-	void Draw_ProxyGeometry();
+	void Draw_Proxy_Geometry();
 	void Draw_Lec4_Particle();
 	void Draw_Lec5_Particle();
 	void Draw_Sin_Particle();
+	void Draw_Rectangle();
+	
+
+
+	// [end] ===================================================
 };
 

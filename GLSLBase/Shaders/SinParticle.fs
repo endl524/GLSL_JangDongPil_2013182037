@@ -9,17 +9,17 @@ out vec4 FragColor;
 void main()
 {
 	vec4 new_Color;
-	float distance = sqrt(v_Original_Pos.x * v_Original_Pos.x + v_Original_Pos.y * v_Original_Pos.y);
-
-	if (distance < v_Radius)
+	float distance_of_Curr_Fragment_from_Original_Pos = sqrt(v_Original_Pos.x * v_Original_Pos.x + v_Original_Pos.y * v_Original_Pos.y);
+	
+	if (distance_of_Curr_Fragment_from_Original_Pos < v_Radius)
 	{
 		new_Color = v_Color;
-		new_Color.a = pow(1 - distance / v_Radius, 7);
+		new_Color.a = pow(1 - distance_of_Curr_Fragment_from_Original_Pos / v_Radius, 1);
 	}
 	else
 	{
 		new_Color = vec4(0.0f);
 	}
-
+	
 	FragColor = new_Color;
 }

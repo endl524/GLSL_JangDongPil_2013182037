@@ -27,10 +27,11 @@ void RenderScene(void)
 
 	// Renderer Test
 	//g_Renderer->Test();
-	//g_Renderer->Draw_ProxyGeometry();
+	//g_Renderer->Draw_Proxy_Geometry();
 	//g_Renderer->Draw_Lec4_Particle();
 	//g_Renderer->Draw_Lec5_Particle();
-	g_Renderer->Draw_Sin_Particle();
+	//g_Renderer->Draw_Sin_Particle();
+	g_Renderer->Draw_Rectangle();
 
 	glutSwapBuffers();
 }

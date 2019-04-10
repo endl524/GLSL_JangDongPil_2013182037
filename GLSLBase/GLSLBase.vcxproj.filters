@@ -47,6 +47,12 @@
     <None Include="Shaders\SinParticle.vs">
       <Filter>Shader</Filter>
     </None>
+    <None Include="Shaders\Rectangle.fs">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Shaders\Rectangle.vs">
+      <Filter>Shader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
