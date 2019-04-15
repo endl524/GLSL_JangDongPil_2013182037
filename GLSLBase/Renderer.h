@@ -19,9 +19,10 @@
 using namespace std;
 
 // [Initial] ============================
-#define PARTICLE_NUMS 10000
+#define PARTICLE_NUMS 1000
 #define PARTICLE_HALF_SIZE 0.1f
-#define RECTANGLE_HALF_SIZE 0.5f
+#define SANDBOX_HALF_SIZE 1.0f
+#define FILLALL_RECT_HALF_SIZE 1.0f
 
 // [Random] =============================
 #define PARTICLE_RAND_POS_MIN -0.99f
@@ -68,7 +69,8 @@ private:
 	GLuint m_SolidRectShader = 0;
 	GLuint m_SimpleParticleShader = 0;
 	GLuint m_Sin_Particle_Shader = 0;
-	GLuint m_Rectangle_Shader = 0;
+	GLuint m_SandBox_Shader = 0;
+	GLuint m_FillAll_Shader = 0;
 
 
 	// Random Engine
@@ -102,8 +104,15 @@ private:
 	GLuint m_VBO_Sin_Particle = 0;
 	GLuint m_Count_of_Sin_Particle_Vertice = 0;
 
-	GLuint m_VBO_Rectangle = 0;
+	GLuint m_VBO_SandBox = 0;
+	GLuint m_VBO_FillAll = 0;
 
+
+
+	// Textures
+	GLuint m_Particle_Texture = 0;
+	GLuint m_Particle_Texture_1 = 0;
+	GLuint m_Particle_Texture_2 = 0;
 
 
 	// [end] ===================================================
@@ -130,8 +139,8 @@ private:
 	void Create_Lec4_Particle_VBO(const int& particle_Count);
 	void Create_Lec5_Particle_VBO(const int& particle_Count);
 	void Create_Sin_Particle_VBO(const int& particle_Count);
-	void Create_Rectangle_VBO();
-
+	void Create_SandBox_VBO();
+	void Create_FillAll_VBO();
 
 
 	// [end] ===================================================
@@ -156,8 +165,10 @@ public:
 	void Draw_Lec4_Particle();
 	void Draw_Lec5_Particle();
 	void Draw_Sin_Particle();
-	void Draw_Rectangle();
+	void Draw_SandBox();
 	
+
+	void Fill_All(const float& alpha);
 
 
 	// [end] ===================================================

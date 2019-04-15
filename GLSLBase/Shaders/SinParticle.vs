@@ -10,7 +10,7 @@ in vec4 a_Color;
 
 // varying ==> fragment shader input
 out vec4 v_Color;
-out vec3 v_Original_Pos;
+out vec2 v_Original_Pos;
 out float v_Radius;
 
 uniform float u_Time;
@@ -72,7 +72,7 @@ void main()
 
 
 	// =========== 모양 작업 ===========
-	v_Original_Pos = a_Position.xyz;
+	v_Original_Pos = a_Position.xy;
 	v_Radius = abs(a_Position.x);
 
 

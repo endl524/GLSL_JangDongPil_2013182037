@@ -22,16 +22,18 @@ int g_WindowSizeY = 600;
 
 void RenderScene(void)
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//glClearColor(0.0f, 0.0f, 0.0f, 0.2f);
+	g_Renderer->Fill_All(0.2f);
+
 
 	// Renderer Test
 	//g_Renderer->Test();
 	//g_Renderer->Draw_Proxy_Geometry();
 	//g_Renderer->Draw_Lec4_Particle();
 	//g_Renderer->Draw_Lec5_Particle();
-	//g_Renderer->Draw_Sin_Particle();
-	g_Renderer->Draw_Rectangle();
+	g_Renderer->Draw_Sin_Particle();
+	//g_Renderer->Draw_SandBox();
 
 	glutSwapBuffers();
 }
