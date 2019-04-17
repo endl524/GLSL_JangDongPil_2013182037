@@ -177,6 +177,8 @@
     <None Include="Shaders\FillAll.vs" />
     <None Include="Shaders\SandBox.fs" />
     <None Include="Shaders\SandBox.vs" />
+    <None Include="Shaders\SimpleTexture.fs" />
+    <None Include="Shaders\SimpleTexture.vs" />
     <None Include="Shaders\SinParticle.fs" />
     <None Include="Shaders\SinParticle.vs" />
     <None Include="Shaders\SimpleParticle.fs" />

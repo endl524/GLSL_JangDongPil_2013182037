@@ -19,10 +19,11 @@
 using namespace std;
 
 // [Initial] ============================
-#define PARTICLE_NUMS 1000
+#define PARTICLE_NUMS 100
 #define PARTICLE_HALF_SIZE 0.1f
 #define SANDBOX_HALF_SIZE 1.0f
 #define FILLALL_RECT_HALF_SIZE 1.0f
+#define SIMPLE_TEXTURE_HALF_SIZE 0.5f
 
 // [Random] =============================
 #define PARTICLE_RAND_POS_MIN -0.99f
@@ -71,6 +72,7 @@ private:
 	GLuint m_Sin_Particle_Shader = 0;
 	GLuint m_SandBox_Shader = 0;
 	GLuint m_FillAll_Shader = 0;
+	GLuint m_Simple_Texture_Shader = 0;
 
 
 	// Random Engine
@@ -105,8 +107,10 @@ private:
 	GLuint m_Count_of_Sin_Particle_Vertice = 0;
 
 	GLuint m_VBO_SandBox = 0;
+	
 	GLuint m_VBO_FillAll = 0;
 
+	GLuint m_VBO_Simple_Texture = 0;
 
 
 	// Textures
@@ -141,6 +145,7 @@ private:
 	void Create_Sin_Particle_VBO(const int& particle_Count);
 	void Create_SandBox_VBO();
 	void Create_FillAll_VBO();
+	void Create_Simple_Texture_VBO();
 
 
 	// [end] ===================================================
@@ -166,7 +171,8 @@ public:
 	void Draw_Lec5_Particle();
 	void Draw_Sin_Particle();
 	void Draw_SandBox();
-	
+	void Draw_Simple_Texture(const GLuint& tex);
+
 
 	void Fill_All(const float& alpha);
 

@@ -27,5 +27,8 @@ void main()
 	FragColor = new_Color;
 	*/
 
-	FragColor = texture(u_Texture, v_Original_Pos / v_Radius);
+	vec2 new_Pos;
+	new_Pos.x = 0.5f + v_Original_Pos.x;
+	new_Pos.y = 0.5f - v_Original_Pos.y;
+	FragColor = texture(u_Texture, new_Pos / v_Radius * 0.5f);
 }

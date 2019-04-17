@@ -26,6 +26,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_Sin_Particle_Shader = CompileShaders("./Shaders/SinParticle.vs", "./Shaders/SinParticle.fs");
 	m_SandBox_Shader = CompileShaders("./Shaders/SandBox.vs", "./Shaders/SandBox.fs");
 	m_FillAll_Shader = CompileShaders("./Shaders/FillAll.vs", "./Shaders/FillAll.fs");
+	m_Simple_Texture_Shader = CompileShaders("./Shaders/SimpleTexture.vs", "./Shaders/SimpleTexture.fs");
 
 	// Load Textures
 	m_Particle_Texture = CreatePngTexture("./Resources/Textures/Test_Cat.png");
@@ -42,6 +43,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	Create_Sin_Particle_VBO(PARTICLE_NUMS);
 	Create_SandBox_VBO();
 	Create_FillAll_VBO();
+	Create_Simple_Texture_VBO();
 }
 
 void Renderer::Random_Device_Setting()
@@ -625,6 +627,62 @@ void Renderer::Create_FillAll_VBO()
 	delete[] Particles_Vertice;
 }
 
+void Renderer::Create_Simple_Texture_VBO()
+{
+	float temp_Pos_X, temp_Pos_Y; // 초기 위치
+
+	// 파티클 조각 개수 = particle_Count
+	// 파티클 한조각의 정점 개수 = 6
+	// 정점당 데이터 개수 = 5
+	int array_Length = 6 * 5;
+	float* Particles_Vertice = new float[array_Length];
+
+	for (int i = 0; i < array_Length; ++i)
+	{
+		Particles_Vertice[i++] = -SIMPLE_TEXTURE_HALF_SIZE; // Pos_X
+		Particles_Vertice[i++] = SIMPLE_TEXTURE_HALF_SIZE; // Pos_Y
+		Particles_Vertice[i++] = 0.0f; // Pos_Z
+		Particles_Vertice[i++] = 0.0f; // UV_Pos_U
+		Particles_Vertice[i++] = 1.0f; // UV_Pos_V
+
+		Particles_Vertice[i++] = -SIMPLE_TEXTURE_HALF_SIZE;
+		Particles_Vertice[i++] = -SIMPLE_TEXTURE_HALF_SIZE;
+		Particles_Vertice[i++] = 0.0f;
+		Particles_Vertice[i++] = 0.0f;
+		Particles_Vertice[i++] = 0.0f;
+
+		Particles_Vertice[i++] = SIMPLE_TEXTURE_HALF_SIZE;
+		Particles_Vertice[i++] = SIMPLE_TEXTURE_HALF_SIZE;
+		Particles_Vertice[i++] = 0.0f;
+		Particles_Vertice[i++] = 1.0f;
+		Particles_Vertice[i++] = 1.0f;
+
+		Particles_Vertice[i++] = SIMPLE_TEXTURE_HALF_SIZE;
+		Particles_Vertice[i++] = -SIMPLE_TEXTURE_HALF_SIZE;
+		Particles_Vertice[i++] = 0.0f;
+		Particles_Vertice[i++] = 1.0f;
+		Particles_Vertice[i++] = 0.0f;
+
+		Particles_Vertice[i++] = SIMPLE_TEXTURE_HALF_SIZE;
+		Particles_Vertice[i++] = SIMPLE_TEXTURE_HALF_SIZE;
+		Particles_Vertice[i++] = 0.0f;
+		Particles_Vertice[i++] = 1.0f;
+		Particles_Vertice[i++] = 1.0f;
+
+		Particles_Vertice[i++] = -SIMPLE_TEXTURE_HALF_SIZE;
+		Particles_Vertice[i++] = -SIMPLE_TEXTURE_HALF_SIZE;
+		Particles_Vertice[i++] = 0.0f;
+		Particles_Vertice[i++] = 0.0f;
+		Particles_Vertice[i] = 0.0f;
+	}
+
+	glGenBuffers(1, &m_VBO_Simple_Texture);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_Simple_Texture);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * array_Length, Particles_Vertice, GL_STATIC_DRAW);
+
+	delete[] Particles_Vertice;
+}
+
 //=================================================================
 
 
@@ -989,7 +1047,7 @@ void Renderer::Draw_Sin_Particle()
 	GLuint u_Texture = glGetUniformLocation(shader_ID, "u_Texture");
 	glUniform1i(u_Texture, 0);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, m_Particle_Texture);
+	glBindTexture(GL_TEXTURE_2D, m_Particle_Texture_2);
 
 
 	// ===============================================
@@ -1078,9 +1136,6 @@ void Renderer::Draw_SandBox()
 	glDisableVertexAttribArray(a_UV);
 }
 
-
-
-
 void Renderer::Fill_All(const float& alpha)
 {
 	glEnable(GL_BLEND);
@@ -1106,6 +1161,50 @@ void Renderer::Fill_All(const float& alpha)
 	// ===============================================
 
 	glDisableVertexAttribArray(a_Position);
+}
+
+void Renderer::Draw_Simple_Texture(const GLuint& tex)
+{
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// ===============================================
+
+	GLuint shader_ID = m_Simple_Texture_Shader;
+	glUseProgram(shader_ID);
+
+	// ===============================================
+
+	GLuint u_Time = glGetUniformLocation(shader_ID, "u_Time");
+	glUniform1f(u_Time, m_Time);
+	m_Time += 0.01f;
+
+	GLuint u_Texture = glGetUniformLocation(shader_ID, "u_Texture");
+	glUniform1i(u_Texture, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_Particle_Texture_2);
+
+
+	// ===============================================
+
+	GLuint a_Position = glGetAttribLocation(shader_ID, "a_Position");
+	GLuint a_Texture_UV = glGetAttribLocation(shader_ID, "a_Texture_UV");
+
+	glEnableVertexAttribArray(a_Position);
+	glEnableVertexAttribArray(a_Texture_UV);
+
+	// ===============================================
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_Simple_Texture);
+	glVertexAttribPointer(a_Position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
+	glVertexAttribPointer(a_Texture_UV, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (GLvoid*)(sizeof(float) * 3));
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	// ===============================================
+
+	glDisableVertexAttribArray(a_Position);
+	glDisableVertexAttribArray(a_Texture_UV);
 }
 
 
