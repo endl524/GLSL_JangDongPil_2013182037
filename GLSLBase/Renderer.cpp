@@ -29,7 +29,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_Simple_Texture_Shader = CompileShaders("./Shaders/SimpleTexture.vs", "./Shaders/SimpleTexture.fs");
 
 	// Load Textures
-	m_Particle_Texture = CreatePngTexture("./Resources/Textures/Test_Cat.png");
+	m_Particle_Texture_1 = CreatePngTexture("./Resources/Textures/Test_Cat.png");
 	m_Particle_Texture_2 = CreatePngTexture("./Resources/Textures/Test_Leaf.png");
 
 	//Random Device Setting
@@ -681,6 +681,18 @@ void Renderer::Create_Simple_Texture_VBO()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * array_Length, Particles_Vertice, GL_STATIC_DRAW);
 
 	delete[] Particles_Vertice;
+
+	// 체크보드 텍스쳐 생성
+	glGenTextures(1, &m_Check_Texture_ID);
+	glBindTexture(GL_TEXTURE_2D, m_Check_Texture_ID);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 8, 8, 0, GL_RGBA, GL_UNSIGNED_BYTE, s_Checker_Board);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE => UV 좌표의 U좌표를 넘어가는 끝부분을 마지막 픽셀의 색상으로 메꿔준다.
+	// GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE => UV 좌표의 V좌표를 넘어가는 끝부분을 마지막 픽셀의 색상으로 메꿔준다.
 }
 
 //=================================================================
@@ -907,7 +919,7 @@ GLuint Renderer::CreateBmpTexture(char * filePath)
 	glBindTexture(GL_TEXTURE_2D, temp);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bmp);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, bmp);
 
 	return temp;
 }
@@ -1179,10 +1191,12 @@ void Renderer::Draw_Simple_Texture(const GLuint& tex)
 	glUniform1f(u_Time, m_Time);
 	m_Time += 0.01f;
 
+	
+
 	GLuint u_Texture = glGetUniformLocation(shader_ID, "u_Texture");
 	glUniform1i(u_Texture, 0);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, m_Particle_Texture_2);
+	glBindTexture(GL_TEXTURE_2D, m_Particle_Texture_1);
 
 
 	// ===============================================
