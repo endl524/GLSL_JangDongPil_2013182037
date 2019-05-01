@@ -132,6 +132,8 @@ private:
 	
 	GLuint m_Check_Texture_ID = 0;
 	
+	GLuint m_Sample_RGB_Texture = 0;
+
 
 
 	// [end] ===================================================

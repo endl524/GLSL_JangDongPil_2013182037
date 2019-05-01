@@ -31,6 +31,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	// Load Textures
 	m_Particle_Texture_1 = CreatePngTexture("./Resources/Textures/Test_Cat.png");
 	m_Particle_Texture_2 = CreatePngTexture("./Resources/Textures/Test_Leaf.png");
+	m_Sample_RGB_Texture = CreatePngTexture("./Resources/Textures/Sample_RGB.png");
 
 	//Random Device Setting
 	Random_Device_Setting();
@@ -1196,7 +1197,7 @@ void Renderer::Draw_Simple_Texture(const GLuint& tex)
 	GLuint u_Texture = glGetUniformLocation(shader_ID, "u_Texture");
 	glUniform1i(u_Texture, 0);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, m_Particle_Texture_1);
+	glBindTexture(GL_TEXTURE_2D, m_Sample_RGB_Texture);
 
 
 	// ===============================================
