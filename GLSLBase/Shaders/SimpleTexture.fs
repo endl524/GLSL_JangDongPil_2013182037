@@ -3,6 +3,9 @@
 in vec2 v_Texture_UV;
 
 uniform sampler2D u_Texture;
+uniform sampler2D u_Texture_2;
+uniform sampler2D u_Texture_3;
+uniform sampler2D u_Texture_4;
 uniform float u_Time;
 
 out vec4 FragColor;
@@ -13,7 +16,7 @@ void main()
 {
 	float new_Time = mod(u_Time, 1.0f);
 	vec2 new_Texture_UV = vec2(v_Texture_UV.x, 1.0f - v_Texture_UV.y);
-
+	vec4 new_Color = vec4(0.0f);
 
 
 	// =====================================
@@ -160,7 +163,8 @@ void main()
 
 
 
-
+	// ★★★★★★ 기말 시험 문제 ★★★★★★
+	// (그대로 나오진 않음. 변형해서 생각할것.)
 	// =====================================
 	// 8. 좌표 꼬아보기 4 (Simple RGB)
 	// <숙제> 벽돌 모양 만들기 1. (가로)
@@ -176,12 +180,12 @@ void main()
     //              => "2분할된 V 좌표"가 다음줄이 된다면 floor 값은 "0 -> 1"이 될것이다.
     //              => 이전에는 "- 0 * 0.5f"를 취해주고 있었다면, 다음줄이 되면서 "- 1 * 0.5f"를 취하게 된다.
     //              => 따라서 윗줄만 0.5f 만큼 밀리게 된다.
-
+	/*
 	new_Texture_UV.x = fract(v_Texture_UV.x * 2.0f) - floor(v_Texture_UV.y * 2.0f) * 0.5f;
 	new_Texture_UV.y = fract(v_Texture_UV.y * 2.0f);
 
 	FragColor = texture(u_Texture, new_Texture_UV);
-    
+    */
 	// =====================================
 
 
@@ -224,5 +228,65 @@ void main()
 
 	FragColor = texture(u_Texture, new_Texture_UV);
     */
+	// =====================================
+
+
+
+
+
+
+
+	// =====================================
+	// 11. 멀티텍스쳐 다루기.
+	// 텍스쳐 두 장을 잘리지 않은 채로 (늘리고/줄여서) 한 면에 다 그리기.
+	// 왼쪽에는 1번째 텍스쳐를, 오른쪽에는 2번째 텍스쳐를..
+	/*
+	new_Color = vec4(0.0f);
+	new_Texture_UV = vec2(v_Texture_UV.x, 1.0f - v_Texture_UV.y);
+	
+	if (new_Texture_UV.x < 0.5f) 
+	{
+		new_Color = texture(u_Texture, vec2(new_Texture_UV.x * 2.0f, new_Texture_UV.y));
+	}
+	else
+	{
+		new_Color = texture(u_Texture_2, vec2(fract(new_Texture_UV.x * 2.0f), new_Texture_UV.y));
+	}
+	FragColor = new_Color;
+    */
+	// =====================================
+
+
+
+
+
+
+
+	// =====================================
+	// 12. 멀티텍스쳐 다루기 2.
+	// 텍스쳐 네 장을 잘리지 않은 채로 (늘리고/줄여서) 한 면에 다 그리기.
+	// 왼쪽 위 부터 0, 1, 2, 3번째 텍스쳐를 그리기.
+
+	new_Color = vec4(0.0f);
+	new_Texture_UV = vec2(v_Texture_UV.x, 1.0f - v_Texture_UV.y);
+	
+	if (new_Texture_UV.x < 0.5f && new_Texture_UV.y < 0.5f) 
+	{
+		new_Color = texture(u_Texture, vec2(new_Texture_UV.x * 2.0f, new_Texture_UV.y * 2.0f));
+	}
+	else if (new_Texture_UV.x >= 0.5f && new_Texture_UV.y < 0.5f)
+	{
+		new_Color = texture(u_Texture_2, vec2(fract(new_Texture_UV.x * 2.0f), new_Texture_UV.y * 2.0f));
+	}
+	else if (new_Texture_UV.x < 0.5f && new_Texture_UV.y >= 0.5f)
+	{
+		new_Color = texture(u_Texture_3, vec2(new_Texture_UV.x * 2.0f, fract(new_Texture_UV.y * 2.0f)));
+	}
+	else
+	{
+		new_Color = texture(u_Texture_4, vec2(fract(new_Texture_UV.x * 2.0f), fract(new_Texture_UV.y * 2.0f)));
+	}
+	FragColor = new_Color;
+    
 	// =====================================
 }

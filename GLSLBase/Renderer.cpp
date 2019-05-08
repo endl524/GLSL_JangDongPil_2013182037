@@ -32,6 +32,8 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_Particle_Texture_1 = CreatePngTexture("./Resources/Textures/Test_Cat.png");
 	m_Particle_Texture_2 = CreatePngTexture("./Resources/Textures/Test_Leaf.png");
 	m_Sample_RGB_Texture = CreatePngTexture("./Resources/Textures/Sample_RGB.png");
+	m_Steel_Floor_Texture = CreatePngTexture("./Resources/Textures/Steel_Floor_Texture.png");
+	m_Wooden_Box_Texture = CreatePngTexture("./Resources/Textures/Wooden_Box_Texture.png");
 
 	//Random Device Setting
 	Random_Device_Setting();
@@ -630,7 +632,7 @@ void Renderer::Create_FillAll_VBO()
 
 void Renderer::Create_Simple_Texture_VBO()
 {
-	float temp_Pos_X, temp_Pos_Y; // 초기 위치
+	//float temp_Pos_X, temp_Pos_Y; // 초기 위치
 
 	// 파티클 조각 개수 = particle_Count
 	// 파티클 한조각의 정점 개수 = 6
@@ -692,6 +694,7 @@ void Renderer::Create_Simple_Texture_VBO()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
+	// glTexImage2D()는 VRAM에 "2D 텍스쳐 이미지"를 올려주는 함수이다. 
 	// GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE => UV 좌표의 U좌표를 넘어가는 끝부분을 마지막 픽셀의 색상으로 메꿔준다.
 	// GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE => UV 좌표의 V좌표를 넘어가는 끝부분을 마지막 픽셀의 색상으로 메꿔준다.
 }
@@ -1192,13 +1195,29 @@ void Renderer::Draw_Simple_Texture(const GLuint& tex)
 	glUniform1f(u_Time, m_Time);
 	m_Time += 0.01f;
 
-	
-
+	//int time_sec = floorf(m_Time);
 	GLuint u_Texture = glGetUniformLocation(shader_ID, "u_Texture");
-	glUniform1i(u_Texture, 0);
+	glUniform1i(u_Texture, 1);
+	GLuint u_Texture_2 = glGetUniformLocation(shader_ID, "u_Texture_2");
+	glUniform1i(u_Texture_2, 2);
+	GLuint u_Texture_3 = glGetUniformLocation(shader_ID, "u_Texture_3");
+	glUniform1i(u_Texture_3, 3);
+	GLuint u_Texture_4 = glGetUniformLocation(shader_ID, "u_Texture_4");
+	glUniform1i(u_Texture_4, 4);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_Sample_RGB_Texture);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, m_Particle_Texture_1);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, m_Particle_Texture_2);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, m_Steel_Floor_Texture);
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, m_Wooden_Box_Texture);
 
+	// GPU는 하나의 Shader에서 텍스쳐를 한번에 80개 정도 사용할 수 있다.
+	// glActiveTexture()로 해당 텍스쳐 슬롯을 활성화 해야 사용 할 수 있다.
+	// 그리고 glBindTexture()를 하면, 직전에 활성화한 텍스쳐 슬롯에 가진 텍스쳐를 바인드 할 수 있다.
 
 	// ===============================================
 

@@ -134,6 +134,8 @@ private:
 	
 	GLuint m_Sample_RGB_Texture = 0;
 
+	GLuint m_Steel_Floor_Texture = 0;
+	GLuint m_Wooden_Box_Texture = 0;
 
 
 	// [end] ===================================================
