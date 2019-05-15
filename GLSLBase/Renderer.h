@@ -77,6 +77,7 @@ private:
 	// Global Variable
 	float m_Scale = 0.0f;
 	float m_Time = 0.0f;
+	int m_Number = 0;
 
 
 	// Shader Programs
@@ -134,9 +135,10 @@ private:
 	
 	GLuint m_Sample_RGB_Texture = 0;
 
-	GLuint m_Steel_Floor_Texture = 0;
+	GLuint m_Full_Moon_Texture = 0;
 	GLuint m_Wooden_Box_Texture = 0;
-
+	GLuint m_Number_Texture = 0;
+	GLuint m_Number_Texture_2 = 0;
 
 	// [end] ===================================================
 

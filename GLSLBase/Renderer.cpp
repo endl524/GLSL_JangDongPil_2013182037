@@ -32,8 +32,10 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_Particle_Texture_1 = CreatePngTexture("./Resources/Textures/Test_Cat.png");
 	m_Particle_Texture_2 = CreatePngTexture("./Resources/Textures/Test_Leaf.png");
 	m_Sample_RGB_Texture = CreatePngTexture("./Resources/Textures/Sample_RGB.png");
-	m_Steel_Floor_Texture = CreatePngTexture("./Resources/Textures/Steel_Floor_Texture.png");
+	m_Full_Moon_Texture = CreatePngTexture("./Resources/Textures/Full_Moon_Texture.png");
 	m_Wooden_Box_Texture = CreatePngTexture("./Resources/Textures/Wooden_Box_Texture.png");
+	m_Number_Texture = CreatePngTexture("./Resources/Textures/Number_Texture.png");
+	m_Number_Texture_2 = CreatePngTexture("./Resources/Textures/Number_Texture_2.png");
 
 	//Random Device Setting
 	Random_Device_Setting();
@@ -1195,6 +1197,18 @@ void Renderer::Draw_Simple_Texture(const GLuint& tex)
 	glUniform1f(u_Time, m_Time);
 	m_Time += 0.01f;
 
+	m_Number = floorf(m_Time);
+	GLuint u_Number = glGetUniformLocation(shader_ID, "u_Number");
+	glUniform1i(u_Number, m_Number);
+	
+	int min, sec_1, sec_2;
+	min = m_Time / 60.0f;
+	sec_1 = (m_Time - min * 60) * 0.1f;
+	sec_2 = m_Time - min * 60 - sec_1 * 10;
+	int time[3] = { min, sec_1, sec_2 };
+	GLuint u_Numbers = glGetUniformLocation(shader_ID, "u_Numbers");
+	glUniform1iv(u_Numbers, 3, time);
+
 	//int time_sec = floorf(m_Time);
 	GLuint u_Texture = glGetUniformLocation(shader_ID, "u_Texture");
 	glUniform1i(u_Texture, 1);
@@ -1204,6 +1218,11 @@ void Renderer::Draw_Simple_Texture(const GLuint& tex)
 	glUniform1i(u_Texture_3, 3);
 	GLuint u_Texture_4 = glGetUniformLocation(shader_ID, "u_Texture_4");
 	glUniform1i(u_Texture_4, 4);
+	GLuint u_Number_Texture = glGetUniformLocation(shader_ID, "u_Number_Texture");
+	glUniform1i(u_Number_Texture, 5);
+	GLuint u_Number_Texture_2 = glGetUniformLocation(shader_ID, "u_Number_Texture_2");
+	glUniform1i(u_Number_Texture_2, 6);
+		
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_Sample_RGB_Texture);
 	glActiveTexture(GL_TEXTURE1);
@@ -1211,9 +1230,14 @@ void Renderer::Draw_Simple_Texture(const GLuint& tex)
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, m_Particle_Texture_2);
 	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, m_Steel_Floor_Texture);
+	glBindTexture(GL_TEXTURE_2D, m_Full_Moon_Texture);
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, m_Wooden_Box_Texture);
+	glActiveTexture(GL_TEXTURE5);
+	glBindTexture(GL_TEXTURE_2D, m_Number_Texture);
+	glActiveTexture(GL_TEXTURE6);
+	glBindTexture(GL_TEXTURE_2D, m_Number_Texture_2);
+
 
 	// GPU는 하나의 Shader에서 텍스쳐를 한번에 80개 정도 사용할 수 있다.
 	// glActiveTexture()로 해당 텍스쳐 슬롯을 활성화 해야 사용 할 수 있다.

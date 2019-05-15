@@ -6,7 +6,13 @@ uniform sampler2D u_Texture;
 uniform sampler2D u_Texture_2;
 uniform sampler2D u_Texture_3;
 uniform sampler2D u_Texture_4;
+uniform sampler2D u_Number_Texture;
+uniform sampler2D u_Number_Texture_2;
+
 uniform float u_Time;
+
+uniform int u_Number;
+uniform int u_Numbers[3];
 
 out vec4 FragColor;
 
@@ -266,7 +272,9 @@ void main()
 	// 12. 멀티텍스쳐 다루기 2.
 	// 텍스쳐 네 장을 잘리지 않은 채로 (늘리고/줄여서) 한 면에 다 그리기.
 	// 왼쪽 위 부터 0, 1, 2, 3번째 텍스쳐를 그리기.
-
+	// **이 방식은 "캐시미스" 발생.**
+	// => ** Texture Switch가 발생하여 효율성 하락. (Cache Miss) **
+	/*
 	new_Color = vec4(0.0f);
 	new_Texture_UV = vec2(v_Texture_UV.x, 1.0f - v_Texture_UV.y);
 	
@@ -287,6 +295,63 @@ void main()
 		new_Color = texture(u_Texture_4, vec2(fract(new_Texture_UV.x * 2.0f), fract(new_Texture_UV.y * 2.0f)));
 	}
 	FragColor = new_Color;
-    
+    */
+	// =====================================
+
+
+
+
+
+
+
+
+	// =====================================
+	// 13. 멀티텍스쳐 다루기 3. (Atlas Texture)
+	// 여러개의 텍스쳐를 하나의 텍스쳐에 합쳐놓고 그 텍스쳐의 UV좌표만 가지고 구분하기(다루기).
+	// 시간에 따라 다음 텍스쳐를 그려주도록.. (0~9 반복)
+	// ** Texture Switch가 발생하지 않아 Cache Miss가 발생하지 않는다! **
+	/*
+	new_Color = vec4(0.0f);
+	new_Texture_UV = vec2(v_Texture_UV.x, (9 - u_Number + v_Texture_UV.y) * 0.1f);
+	
+	new_Color = texture(u_Number_Texture_2, new_Texture_UV);
+
+	FragColor = new_Color;
+	*/
+	// =====================================
+
+
+
+
+
+
+	// =====================================
+	// 14. 멀티텍스쳐 다루기 4.
+	// 아틀라스 텍스쳐를 가지고 세개의 텍스쳐를 한번에 그려보기.
+	// *** 시계 처럼 만들어보기. ***
+	// ** Texture Switch가 발생하지 않아 Cache Miss가 발생하지 않는다! **
+
+	new_Color = vec4(0.0f);
+	int index = int(floor(v_Texture_UV.x * 3.0f));
+	new_Texture_UV = vec2(fract(v_Texture_UV.x * 3.0f), ( (9 - u_Numbers[index] + v_Texture_UV.y) ) * 0.1f);
+	
+	new_Color = texture(u_Number_Texture_2, new_Texture_UV);
+
+	FragColor = new_Color;
+
+	// =====================================
+
+
+
+
+	
+
+	// =====================================
+	// 15. 멀티텍스쳐 다루기 5.
+	// <숙제> Atlas Texture를 이용하여 Sprite Animation 구현하기.
+	// => Sprite 텍스쳐를 하나 구해서 애니메이션 구현.
+
+
+
 	// =====================================
 }
