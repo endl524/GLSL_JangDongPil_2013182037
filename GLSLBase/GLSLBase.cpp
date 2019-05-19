@@ -13,30 +13,29 @@ but WITHOUT ANY WARRANTY.
 #include "Dependencies\glew.h"
 #include "Dependencies\freeglut.h"
 
+#include <chrono>
+
 #include "Renderer.h"
+
+using namespace std;
+using namespace chrono;
 
 Renderer *g_Renderer = NULL;
 
 int g_WindowSizeX = 600;
 int g_WindowSizeY = 600;
 
+time_point<system_clock> g_Prev_Time;
+duration<float> g_Elapsed_Time(0);
+
 void RenderScene(void)
 {
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glClearColor(0.0f, 0.0f, 0.0f, 0.2f);
-	g_Renderer->Fill_All(0.2f);
-
-
-	// Renderer Test
-	//g_Renderer->Test();
-	//g_Renderer->Draw_Proxy_Geometry();
-	//g_Renderer->Draw_Lec4_Particle();
-	//g_Renderer->Draw_Lec5_Particle();
-	//g_Renderer->Draw_Sin_Particle();
-	//g_Renderer->Draw_SandBox();
-	g_Renderer->Draw_Simple_Texture(0);
-
+	g_Prev_Time = system_clock::now();
+	
+	g_Renderer->Rendering(g_Elapsed_Time.count());
 	glutSwapBuffers();
+
+	g_Elapsed_Time = system_clock::now() - g_Prev_Time;
 }
 
 void Idle(void)

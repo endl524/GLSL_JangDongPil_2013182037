@@ -36,6 +36,12 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_Wooden_Box_Texture = CreatePngTexture("./Resources/Textures/Wooden_Box_Texture.png");
 	m_Number_Texture = CreatePngTexture("./Resources/Textures/Number_Texture.png");
 	m_Number_Texture_2 = CreatePngTexture("./Resources/Textures/Number_Texture_2.png");
+	m_Particle_Texture_3 = CreatePngTexture("./Resources/Textures/Test_Cat_2.png");
+
+	// Load Sprites
+	m_Sans_Sprite = CreatePngTexture("./Resources/Sprites/Sans_Sprite.png");
+	m_Runner_Sprite = CreatePngTexture("./Resources/Sprites/Runner_Sprite.png");
+	m_Gunner_Sprite = CreatePngTexture("./Resources/Sprites/Gunner_Sprite.png");
 
 	//Random Device Setting
 	Random_Device_Setting();
@@ -985,7 +991,6 @@ void Renderer::Draw_Lec4_Particle()
 
 	GLuint u_Time = glGetUniformLocation(shader_ID, "u_Time");
 	glUniform1f(u_Time, m_Time); // 해당 Uniform 변수의 값을 변경한다.
-	m_Time += 0.01f;
 
 	GLuint a_Position = glGetAttribLocation(shader_ID, "a_Position");
 	GLuint a_Velocity = glGetAttribLocation(shader_ID, "a_Velocity");
@@ -1009,7 +1014,6 @@ void Renderer::Draw_Lec5_Particle()
 	GLuint u_Time = glGetUniformLocation(shader_ID, "u_Time");
 	GLuint u_Repeat = glGetUniformLocation(shader_ID, "u_Repeat");
 	glUniform1f(u_Time, m_Time);
-	m_Time += 0.01f;
 
 	GLuint a_Position = glGetAttribLocation(shader_ID, "a_Position");
 	GLuint a_Velocity = glGetAttribLocation(shader_ID, "a_Velocity");
@@ -1060,7 +1064,6 @@ void Renderer::Draw_Sin_Particle()
 
 	GLuint u_Time = glGetUniformLocation(shader_ID, "u_Time");
 	glUniform1f(u_Time, m_Time);
-	m_Time += 0.01f;
 	
 	GLuint u_Texture = glGetUniformLocation(shader_ID, "u_Texture");
 	glUniform1i(u_Texture, 0);
@@ -1123,7 +1126,6 @@ void Renderer::Draw_SandBox()
 
 	GLuint u_Time = glGetUniformLocation(shader_ID, "u_Time");
 	glUniform1f(u_Time, m_Time);
-	m_Time += 0.01f;
 
 	GLuint u_Points = glGetUniformLocation(shader_ID, "u_Points");
 	glUniform2fv(u_Points, 5, points);
@@ -1181,7 +1183,7 @@ void Renderer::Fill_All(const float& alpha)
 	glDisableVertexAttribArray(a_Position);
 }
 
-void Renderer::Draw_Simple_Texture(const GLuint& tex)
+void Renderer::Draw_Simple_Texture()
 {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1195,8 +1197,8 @@ void Renderer::Draw_Simple_Texture(const GLuint& tex)
 
 	GLuint u_Time = glGetUniformLocation(shader_ID, "u_Time");
 	glUniform1f(u_Time, m_Time);
-	m_Time += 0.01f;
 
+	
 	m_Number = floorf(m_Time);
 	GLuint u_Number = glGetUniformLocation(shader_ID, "u_Number");
 	glUniform1i(u_Number, m_Number);
@@ -1208,10 +1210,13 @@ void Renderer::Draw_Simple_Texture(const GLuint& tex)
 	int time[3] = { min, sec_1, sec_2 };
 	GLuint u_Numbers = glGetUniformLocation(shader_ID, "u_Numbers");
 	glUniform1iv(u_Numbers, 3, time);
+	
 
-	//int time_sec = floorf(m_Time);
+	// Apply Textures ID
 	GLuint u_Texture = glGetUniformLocation(shader_ID, "u_Texture");
-	glUniform1i(u_Texture, 1);
+	glUniform1i(u_Texture, 0);
+	GLuint u_Texture_1 = glGetUniformLocation(shader_ID, "u_Texture_1");
+	glUniform1i(u_Texture_1, 1);
 	GLuint u_Texture_2 = glGetUniformLocation(shader_ID, "u_Texture_2");
 	glUniform1i(u_Texture_2, 2);
 	GLuint u_Texture_3 = glGetUniformLocation(shader_ID, "u_Texture_3");
@@ -1222,7 +1227,10 @@ void Renderer::Draw_Simple_Texture(const GLuint& tex)
 	glUniform1i(u_Number_Texture, 5);
 	GLuint u_Number_Texture_2 = glGetUniformLocation(shader_ID, "u_Number_Texture_2");
 	glUniform1i(u_Number_Texture_2, 6);
-		
+	GLuint u_Texture_1_Reversed = glGetUniformLocation(shader_ID, "u_Texture_1_Reversed");
+	glUniform1i(u_Texture_1_Reversed, 7);
+
+	// Activate Textures
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_Sample_RGB_Texture);
 	glActiveTexture(GL_TEXTURE1);
@@ -1237,6 +1245,25 @@ void Renderer::Draw_Simple_Texture(const GLuint& tex)
 	glBindTexture(GL_TEXTURE_2D, m_Number_Texture);
 	glActiveTexture(GL_TEXTURE6);
 	glBindTexture(GL_TEXTURE_2D, m_Number_Texture_2);
+	glActiveTexture(GL_TEXTURE7);
+	glBindTexture(GL_TEXTURE_2D, m_Particle_Texture_3);
+
+
+	// Apply Sprites ID
+	GLuint u_Sans_Sprite = glGetUniformLocation(shader_ID, "u_Sans_Sprite");
+	glUniform1i(u_Sans_Sprite, 8);
+	GLuint u_Runner_Sprite = glGetUniformLocation(shader_ID, "u_Runner_Sprite");
+	glUniform1i(u_Runner_Sprite, 9);
+	GLuint u_Gunner_Sprite = glGetUniformLocation(shader_ID, "u_Gunner_Sprite");
+	glUniform1i(u_Gunner_Sprite, 10);
+
+	// Activate Sprites
+	glActiveTexture(GL_TEXTURE8);
+	glBindTexture(GL_TEXTURE_2D, m_Sans_Sprite);
+	glActiveTexture(GL_TEXTURE9);
+	glBindTexture(GL_TEXTURE_2D, m_Runner_Sprite);
+	glActiveTexture(GL_TEXTURE10);
+	glBindTexture(GL_TEXTURE_2D, m_Gunner_Sprite);
 
 
 	// GPU는 하나의 Shader에서 텍스쳐를 한번에 80개 정도 사용할 수 있다.
@@ -1265,6 +1292,26 @@ void Renderer::Draw_Simple_Texture(const GLuint& tex)
 	glDisableVertexAttribArray(a_Texture_UV);
 }
 
+
+void Renderer::Rendering(const float& elapsed_time)
+{
+	// ** Time Update **
+	m_Time += elapsed_time;
+
+	// ** Scene Clearing **
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//glClearColor(0.0f, 0.0f, 0.0f, 0.2f);
+	Fill_All(0.2f);
+
+	// ** Render **
+	//Test();
+	//Draw_Proxy_Geometry();
+	//Draw_Lec4_Particle();
+	//Draw_Lec5_Particle();
+	//Draw_Sin_Particle();
+	//Draw_SandBox();
+	Draw_Simple_Texture();
+}
 
 
 // ================================================================

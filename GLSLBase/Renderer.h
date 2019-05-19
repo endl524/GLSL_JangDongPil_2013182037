@@ -7,7 +7,6 @@
 
 
 #include <random>
-#include <chrono>
 
 
 #include "Dependencies\glew.h"
@@ -102,11 +101,6 @@ private:
 	uniform_real_distribution<> m_Random_Color;
 
 
-	// Chrono Engine
-	chrono::system_clock::time_point m_Prev_Time;
-	chrono::system_clock::time_point m_Curr_Time;
-
-
 	// VBO Variable
 	GLuint m_VBORect = 0;
 	GLuint m_VBORectColor = 0;
@@ -130,6 +124,7 @@ private:
 	// Textures
 	GLuint m_Particle_Texture_1 = 0;
 	GLuint m_Particle_Texture_2 = 0;
+	GLuint m_Particle_Texture_3 = 0;
 	
 	GLuint m_Check_Texture_ID = 0;
 	
@@ -139,6 +134,13 @@ private:
 	GLuint m_Wooden_Box_Texture = 0;
 	GLuint m_Number_Texture = 0;
 	GLuint m_Number_Texture_2 = 0;
+
+
+	// Sprites
+	GLuint m_Sans_Sprite = 0;
+	GLuint m_Runner_Sprite = 0;
+	GLuint m_Gunner_Sprite = 0;
+
 
 	// [end] ===================================================
 
@@ -169,6 +171,17 @@ private:
 	void Create_Simple_Texture_VBO();
 
 
+	// Draw Methods
+	void Test();
+	void Draw_Proxy_Geometry();
+	void Draw_Lec4_Particle();
+	void Draw_Lec5_Particle();
+	void Draw_Sin_Particle();
+	void Draw_SandBox();
+	void Fill_All(const float& alpha);
+	void Draw_Simple_Texture();
+	
+
 	// [end] ===================================================
 
 
@@ -181,21 +194,12 @@ public:
 
 
 	// Texture Create Method
-	GLuint CreatePngTexture(char * filePath);
-	GLuint CreateBmpTexture(char * filePath);
+	GLuint CreatePngTexture(char* filePath);
+	GLuint CreateBmpTexture(char* filePath);
 
 
-	// Draw Methods
-	void Test();
-	void Draw_Proxy_Geometry();
-	void Draw_Lec4_Particle();
-	void Draw_Lec5_Particle();
-	void Draw_Sin_Particle();
-	void Draw_SandBox();
-	void Draw_Simple_Texture(const GLuint& tex);
-
-
-	void Fill_All(const float& alpha);
+	// Rendering
+	void Rendering(const float& elapsed_time);
 
 
 	// [end] ===================================================
