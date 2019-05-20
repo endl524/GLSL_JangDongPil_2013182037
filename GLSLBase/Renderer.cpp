@@ -27,6 +27,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_SandBox_Shader = CompileShaders("./Shaders/SandBox.vs", "./Shaders/SandBox.fs");
 	m_FillAll_Shader = CompileShaders("./Shaders/FillAll.vs", "./Shaders/FillAll.fs");
 	m_Simple_Texture_Shader = CompileShaders("./Shaders/SimpleTexture.vs", "./Shaders/SimpleTexture.fs");
+	m_VS_SandBox_Shader = CompileShaders("./Shaders/VSSandBox.vs", "./Shaders/VSSandBox.fs");
 
 	// Load Textures
 	m_Particle_Texture_1 = CreatePngTexture("./Resources/Textures/Test_Cat.png");
@@ -42,6 +43,21 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_Sans_Sprite = CreatePngTexture("./Resources/Sprites/Sans_Sprite.png");
 	m_Runner_Sprite = CreatePngTexture("./Resources/Sprites/Runner_Sprite.png");
 	m_Gunner_Sprite = CreatePngTexture("./Resources/Sprites/Gunner_Sprite.png");
+	m_Runner_Sprite_2 = CreatePngTexture("./Resources/Sprites/Runner_Sprite_2.png");
+	m_Flame_Sprite = CreatePngTexture("./Resources/Sprites/Flame_Sprite.png");
+
+	// Create Checkboard Texture
+	glGenTextures(1, &m_Check_Texture_ID);
+	glBindTexture(GL_TEXTURE_2D, m_Check_Texture_ID);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 8, 8, 0, GL_RGBA, GL_UNSIGNED_BYTE, s_Checker_Board);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// glTexImage2D()는 VRAM에 "2D 텍스쳐 이미지"를 올려주는 함수이다. 
+	// GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE => UV 좌표의 U좌표를 넘어가는 끝부분을 마지막 픽셀의 색상으로 메꿔준다.
+	// GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE => UV 좌표의 V좌표를 넘어가는 끝부분을 마지막 픽셀의 색상으로 메꿔준다.
 
 	//Random Device Setting
 	Random_Device_Setting();
@@ -55,6 +71,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	Create_SandBox_VBO();
 	Create_FillAll_VBO();
 	Create_Simple_Texture_VBO();
+	//Create_No_Name_VBO();
 }
 
 void Renderer::Random_Device_Setting()
@@ -518,193 +535,173 @@ void Renderer::Create_SandBox_VBO()
 	float temp_Pos_X, temp_Pos_Y; // 초기 위치
 	float temp_Color_R = 1.0f, temp_Color_G = 1.0f, temp_Color_B = 1.0f, temp_Color_A = 1.0f; // 색상
 
-	// 파티클 조각 개수 = particle_Count
-	// 파티클 한조각의 정점 개수 = 6
+	// 정점 개수 = 6
 	// 정점당 데이터 개수 = 9
 	int array_Length = 6 * 9;
-	float* Particles_Vertice = new float[array_Length];
+	float* Vertices = new float[array_Length];
 
 	for (int i = 0; i < array_Length; ++i)
 	{
-		Particles_Vertice[i++] = -SANDBOX_HALF_SIZE; // Pos_X
-		Particles_Vertice[i++] = SANDBOX_HALF_SIZE; // Pos_Y
-		Particles_Vertice[i++] = 0.0f; // Pos_Z
-		Particles_Vertice[i++] = temp_Color_R; // Color R
-		Particles_Vertice[i++] = temp_Color_G; // Color G
-		Particles_Vertice[i++] = temp_Color_B; // Color B
-		Particles_Vertice[i++] = temp_Color_A; // Color A
-		Particles_Vertice[i++] = 0.0f;
-		Particles_Vertice[i++] = 1.0f;
+		Vertices[i++] = -SANDBOX_HALF_SIZE; // Pos_X
+		Vertices[i++] = SANDBOX_HALF_SIZE; // Pos_Y
+		Vertices[i++] = 0.0f; // Pos_Z
+		Vertices[i++] = temp_Color_R; // Color R
+		Vertices[i++] = temp_Color_G; // Color G
+		Vertices[i++] = temp_Color_B; // Color B
+		Vertices[i++] = temp_Color_A; // Color A
+		Vertices[i++] = 0.0f;
+		Vertices[i++] = 1.0f;
 
-		Particles_Vertice[i++] = -SANDBOX_HALF_SIZE;
-		Particles_Vertice[i++] = -SANDBOX_HALF_SIZE;
-		Particles_Vertice[i++] = 0.0f;
-		Particles_Vertice[i++] = temp_Color_R;
-		Particles_Vertice[i++] = temp_Color_G;
-		Particles_Vertice[i++] = temp_Color_B;
-		Particles_Vertice[i++] = temp_Color_A;
-		Particles_Vertice[i++] = 0.0f;
-		Particles_Vertice[i++] = 0.0f;
+		Vertices[i++] = -SANDBOX_HALF_SIZE;
+		Vertices[i++] = -SANDBOX_HALF_SIZE;
+		Vertices[i++] = 0.0f;
+		Vertices[i++] = temp_Color_R;
+		Vertices[i++] = temp_Color_G;
+		Vertices[i++] = temp_Color_B;
+		Vertices[i++] = temp_Color_A;
+		Vertices[i++] = 0.0f;
+		Vertices[i++] = 0.0f;
 
-		Particles_Vertice[i++] = SANDBOX_HALF_SIZE;
-		Particles_Vertice[i++] = SANDBOX_HALF_SIZE;
-		Particles_Vertice[i++] = 0.0f;
-		Particles_Vertice[i++] = temp_Color_R;
-		Particles_Vertice[i++] = temp_Color_G;
-		Particles_Vertice[i++] = temp_Color_B;
-		Particles_Vertice[i++] = temp_Color_A;
-		Particles_Vertice[i++] = 1.0f;
-		Particles_Vertice[i++] = 1.0f;
+		Vertices[i++] = SANDBOX_HALF_SIZE;
+		Vertices[i++] = SANDBOX_HALF_SIZE;
+		Vertices[i++] = 0.0f;
+		Vertices[i++] = temp_Color_R;
+		Vertices[i++] = temp_Color_G;
+		Vertices[i++] = temp_Color_B;
+		Vertices[i++] = temp_Color_A;
+		Vertices[i++] = 1.0f;
+		Vertices[i++] = 1.0f;
 
-		Particles_Vertice[i++] = SANDBOX_HALF_SIZE;
-		Particles_Vertice[i++] = -SANDBOX_HALF_SIZE;
-		Particles_Vertice[i++] = 0.0f;
-		Particles_Vertice[i++] = temp_Color_R;
-		Particles_Vertice[i++] = temp_Color_G;
-		Particles_Vertice[i++] = temp_Color_B;
-		Particles_Vertice[i++] = temp_Color_A;
-		Particles_Vertice[i++] = 1.0f;
-		Particles_Vertice[i++] = 0.0f;
+		Vertices[i++] = SANDBOX_HALF_SIZE;
+		Vertices[i++] = -SANDBOX_HALF_SIZE;
+		Vertices[i++] = 0.0f;
+		Vertices[i++] = temp_Color_R;
+		Vertices[i++] = temp_Color_G;
+		Vertices[i++] = temp_Color_B;
+		Vertices[i++] = temp_Color_A;
+		Vertices[i++] = 1.0f;
+		Vertices[i++] = 0.0f;
 
-		Particles_Vertice[i++] = SANDBOX_HALF_SIZE;
-		Particles_Vertice[i++] = SANDBOX_HALF_SIZE;
-		Particles_Vertice[i++] = 0.0f;
-		Particles_Vertice[i++] = temp_Color_R;
-		Particles_Vertice[i++] = temp_Color_G;
-		Particles_Vertice[i++] = temp_Color_B;
-		Particles_Vertice[i++] = temp_Color_A;
-		Particles_Vertice[i++] = 1.0f;
-		Particles_Vertice[i++] = 1.0f;
+		Vertices[i++] = SANDBOX_HALF_SIZE;
+		Vertices[i++] = SANDBOX_HALF_SIZE;
+		Vertices[i++] = 0.0f;
+		Vertices[i++] = temp_Color_R;
+		Vertices[i++] = temp_Color_G;
+		Vertices[i++] = temp_Color_B;
+		Vertices[i++] = temp_Color_A;
+		Vertices[i++] = 1.0f;
+		Vertices[i++] = 1.0f;
 
-		Particles_Vertice[i++] = -SANDBOX_HALF_SIZE;
-		Particles_Vertice[i++] = -SANDBOX_HALF_SIZE;
-		Particles_Vertice[i++] = 0.0f;
-		Particles_Vertice[i++] = temp_Color_R;
-		Particles_Vertice[i++] = temp_Color_G;
-		Particles_Vertice[i++] = temp_Color_B;
-		Particles_Vertice[i++] = temp_Color_A;
-		Particles_Vertice[i++] = 0.0f;
-		Particles_Vertice[i] = 0.0f;
+		Vertices[i++] = -SANDBOX_HALF_SIZE;
+		Vertices[i++] = -SANDBOX_HALF_SIZE;
+		Vertices[i++] = 0.0f;
+		Vertices[i++] = temp_Color_R;
+		Vertices[i++] = temp_Color_G;
+		Vertices[i++] = temp_Color_B;
+		Vertices[i++] = temp_Color_A;
+		Vertices[i++] = 0.0f;
+		Vertices[i] = 0.0f;
 	}
 
 	glGenBuffers(1, &m_VBO_SandBox);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_SandBox);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * array_Length, Particles_Vertice, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * array_Length, Vertices, GL_STATIC_DRAW);
 
-	delete[] Particles_Vertice;
+	delete[] Vertices;
 }
 
 void Renderer::Create_FillAll_VBO()
 {
 	float temp_Pos_X, temp_Pos_Y; // 초기 위치
 
-	// 파티클 조각 개수 = particle_Count
-	// 파티클 한조각의 정점 개수 = 6
+	// 정점 개수 = 6
 	// 정점당 데이터 개수 = 3
 	int array_Length = 6 * 3;
-	float* Particles_Vertice = new float[array_Length];
+	float* Vertices = new float[array_Length];
 
 	for (int i = 0; i < array_Length; ++i)
 	{
-		Particles_Vertice[i++] = -FILLALL_RECT_HALF_SIZE; // Pos_X
-		Particles_Vertice[i++] = FILLALL_RECT_HALF_SIZE; // Pos_Y
-		Particles_Vertice[i++] = 0.0f; // Pos_Z
+		Vertices[i++] = -FILLALL_RECT_HALF_SIZE; // Pos_X
+		Vertices[i++] = FILLALL_RECT_HALF_SIZE; // Pos_Y
+		Vertices[i++] = 0.0f; // Pos_Z
 
-		Particles_Vertice[i++] = -FILLALL_RECT_HALF_SIZE;
-		Particles_Vertice[i++] = -FILLALL_RECT_HALF_SIZE;
-		Particles_Vertice[i++] = 0.0f;
+		Vertices[i++] = -FILLALL_RECT_HALF_SIZE;
+		Vertices[i++] = -FILLALL_RECT_HALF_SIZE;
+		Vertices[i++] = 0.0f;
 
-		Particles_Vertice[i++] = FILLALL_RECT_HALF_SIZE;
-		Particles_Vertice[i++] = FILLALL_RECT_HALF_SIZE;
-		Particles_Vertice[i++] = 0.0f;
+		Vertices[i++] = FILLALL_RECT_HALF_SIZE;
+		Vertices[i++] = FILLALL_RECT_HALF_SIZE;
+		Vertices[i++] = 0.0f;
 
-		Particles_Vertice[i++] = FILLALL_RECT_HALF_SIZE;
-		Particles_Vertice[i++] = -FILLALL_RECT_HALF_SIZE;
-		Particles_Vertice[i++] = 0.0f;
+		Vertices[i++] = FILLALL_RECT_HALF_SIZE;
+		Vertices[i++] = -FILLALL_RECT_HALF_SIZE;
+		Vertices[i++] = 0.0f;
 
-		Particles_Vertice[i++] = FILLALL_RECT_HALF_SIZE;
-		Particles_Vertice[i++] = FILLALL_RECT_HALF_SIZE;
-		Particles_Vertice[i++] = 0.0f;
+		Vertices[i++] = FILLALL_RECT_HALF_SIZE;
+		Vertices[i++] = FILLALL_RECT_HALF_SIZE;
+		Vertices[i++] = 0.0f;
 
-		Particles_Vertice[i++] = -FILLALL_RECT_HALF_SIZE;
-		Particles_Vertice[i++] = -FILLALL_RECT_HALF_SIZE;
-		Particles_Vertice[i] = 0.0f;
+		Vertices[i++] = -FILLALL_RECT_HALF_SIZE;
+		Vertices[i++] = -FILLALL_RECT_HALF_SIZE;
+		Vertices[i] = 0.0f;
 	}
 
 	glGenBuffers(1, &m_VBO_FillAll);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_FillAll);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * array_Length, Particles_Vertice, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * array_Length, Vertices, GL_STATIC_DRAW);
 
-	delete[] Particles_Vertice;
+	delete[] Vertices;
 }
 
 void Renderer::Create_Simple_Texture_VBO()
 {
-	//float temp_Pos_X, temp_Pos_Y; // 초기 위치
-
-	// 파티클 조각 개수 = particle_Count
-	// 파티클 한조각의 정점 개수 = 6
-	// 정점당 데이터 개수 = 5
 	int array_Length = 6 * 5;
-	float* Particles_Vertice = new float[array_Length];
+	float* Vertices = new float[array_Length];
 
 	for (int i = 0; i < array_Length; ++i)
 	{
-		Particles_Vertice[i++] = -SIMPLE_TEXTURE_HALF_SIZE; // Pos_X
-		Particles_Vertice[i++] = SIMPLE_TEXTURE_HALF_SIZE; // Pos_Y
-		Particles_Vertice[i++] = 0.0f; // Pos_Z
-		Particles_Vertice[i++] = 0.0f; // UV_Pos_U
-		Particles_Vertice[i++] = 1.0f; // UV_Pos_V
+		Vertices[i++] = -SIMPLE_TEXTURE_HALF_SIZE; // Pos_X
+		Vertices[i++] = SIMPLE_TEXTURE_HALF_SIZE; // Pos_Y
+		Vertices[i++] = 0.0f; // Pos_Z
+		Vertices[i++] = 0.0f; // UV_Pos_U
+		Vertices[i++] = 1.0f; // UV_Pos_V
 
-		Particles_Vertice[i++] = -SIMPLE_TEXTURE_HALF_SIZE;
-		Particles_Vertice[i++] = -SIMPLE_TEXTURE_HALF_SIZE;
-		Particles_Vertice[i++] = 0.0f;
-		Particles_Vertice[i++] = 0.0f;
-		Particles_Vertice[i++] = 0.0f;
+		Vertices[i++] = -SIMPLE_TEXTURE_HALF_SIZE;
+		Vertices[i++] = -SIMPLE_TEXTURE_HALF_SIZE;
+		Vertices[i++] = 0.0f;
+		Vertices[i++] = 0.0f;
+		Vertices[i++] = 0.0f;
 
-		Particles_Vertice[i++] = SIMPLE_TEXTURE_HALF_SIZE;
-		Particles_Vertice[i++] = SIMPLE_TEXTURE_HALF_SIZE;
-		Particles_Vertice[i++] = 0.0f;
-		Particles_Vertice[i++] = 1.0f;
-		Particles_Vertice[i++] = 1.0f;
+		Vertices[i++] = SIMPLE_TEXTURE_HALF_SIZE;
+		Vertices[i++] = SIMPLE_TEXTURE_HALF_SIZE;
+		Vertices[i++] = 0.0f;
+		Vertices[i++] = 1.0f;
+		Vertices[i++] = 1.0f;
 
-		Particles_Vertice[i++] = SIMPLE_TEXTURE_HALF_SIZE;
-		Particles_Vertice[i++] = -SIMPLE_TEXTURE_HALF_SIZE;
-		Particles_Vertice[i++] = 0.0f;
-		Particles_Vertice[i++] = 1.0f;
-		Particles_Vertice[i++] = 0.0f;
+		Vertices[i++] = SIMPLE_TEXTURE_HALF_SIZE;
+		Vertices[i++] = -SIMPLE_TEXTURE_HALF_SIZE;
+		Vertices[i++] = 0.0f;
+		Vertices[i++] = 1.0f;
+		Vertices[i++] = 0.0f;
 
-		Particles_Vertice[i++] = SIMPLE_TEXTURE_HALF_SIZE;
-		Particles_Vertice[i++] = SIMPLE_TEXTURE_HALF_SIZE;
-		Particles_Vertice[i++] = 0.0f;
-		Particles_Vertice[i++] = 1.0f;
-		Particles_Vertice[i++] = 1.0f;
+		Vertices[i++] = SIMPLE_TEXTURE_HALF_SIZE;
+		Vertices[i++] = SIMPLE_TEXTURE_HALF_SIZE;
+		Vertices[i++] = 0.0f;
+		Vertices[i++] = 1.0f;
+		Vertices[i++] = 1.0f;
 
-		Particles_Vertice[i++] = -SIMPLE_TEXTURE_HALF_SIZE;
-		Particles_Vertice[i++] = -SIMPLE_TEXTURE_HALF_SIZE;
-		Particles_Vertice[i++] = 0.0f;
-		Particles_Vertice[i++] = 0.0f;
-		Particles_Vertice[i] = 0.0f;
+		Vertices[i++] = -SIMPLE_TEXTURE_HALF_SIZE;
+		Vertices[i++] = -SIMPLE_TEXTURE_HALF_SIZE;
+		Vertices[i++] = 0.0f;
+		Vertices[i++] = 0.0f;
+		Vertices[i] = 0.0f;
 	}
 
 	glGenBuffers(1, &m_VBO_Simple_Texture);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_Simple_Texture);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * array_Length, Particles_Vertice, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * array_Length, Vertices, GL_STATIC_DRAW);
 
-	delete[] Particles_Vertice;
-
-	// 체크보드 텍스쳐 생성
-	glGenTextures(1, &m_Check_Texture_ID);
-	glBindTexture(GL_TEXTURE_2D, m_Check_Texture_ID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 8, 8, 0, GL_RGBA, GL_UNSIGNED_BYTE, s_Checker_Board);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	// glTexImage2D()는 VRAM에 "2D 텍스쳐 이미지"를 올려주는 함수이다. 
-	// GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE => UV 좌표의 U좌표를 넘어가는 끝부분을 마지막 픽셀의 색상으로 메꿔준다.
-	// GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE => UV 좌표의 V좌표를 넘어가는 끝부분을 마지막 픽셀의 색상으로 메꿔준다.
+	delete[] Vertices;
 }
 
 //=================================================================
@@ -1036,9 +1033,20 @@ void Renderer::Draw_Lec5_Particle()
 
 void Renderer::Draw_Proxy_Geometry()
 {
-	GLuint shader_ID = m_SolidRectShader;
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	// ===============================================
+
+	GLuint shader_ID = m_VS_SandBox_Shader;
 	glUseProgram(shader_ID);
+
+	// ===============================================
+
+	GLuint u_Time = glGetUniformLocation(shader_ID, "u_Time");
+	glUniform1f(u_Time, m_Time);
+
+	// ===============================================
 
 	int attribPosition = glGetAttribLocation(shader_ID, "a_Position");
 
@@ -1046,7 +1054,10 @@ void Renderer::Draw_Proxy_Geometry()
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_ProxyGeo);
 	glVertexAttribPointer(attribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
 
-	glDrawArrays(GL_TRIANGLES, 0, m_Count_ProxyGeo);
+	glDrawArrays(GL_LINE_STRIP, 0, m_Count_ProxyGeo);
+
+	// ===============================================
+
 	glDisableVertexAttribArray(attribPosition);
 }
 
@@ -1202,6 +1213,13 @@ void Renderer::Draw_Simple_Texture()
 	m_Number = floorf(m_Time);
 	GLuint u_Number = glGetUniformLocation(shader_ID, "u_Number");
 	glUniform1i(u_Number, m_Number);
+
+	GLuint u_X_Index = glGetUniformLocation(shader_ID, "u_X_Index");
+	glUniform1f(u_X_Index, m_Time * 20.0f);
+	GLuint u_Resolution_X = glGetUniformLocation(shader_ID, "u_Resolution_X");
+	glUniform1f(u_Resolution_X, 6.0f);
+	GLuint u_Resolution_Y = glGetUniformLocation(shader_ID, "u_Resolution_Y");
+	glUniform1f(u_Resolution_Y, 1.0f);
 	
 	int min, sec_1, sec_2;
 	min = m_Time / 60.0f;
@@ -1256,6 +1274,10 @@ void Renderer::Draw_Simple_Texture()
 	glUniform1i(u_Runner_Sprite, 9);
 	GLuint u_Gunner_Sprite = glGetUniformLocation(shader_ID, "u_Gunner_Sprite");
 	glUniform1i(u_Gunner_Sprite, 10);
+	GLuint u_Runner_Sprite_Reversed = glGetUniformLocation(shader_ID, "u_Runner_Sprite_Reversed");
+	glUniform1i(u_Runner_Sprite_Reversed, 11);
+	GLuint u_Flame_Sprite = glGetUniformLocation(shader_ID, "u_Flame_Sprite");
+	glUniform1i(u_Flame_Sprite, 12);
 
 	// Activate Sprites
 	glActiveTexture(GL_TEXTURE8);
@@ -1264,6 +1286,10 @@ void Renderer::Draw_Simple_Texture()
 	glBindTexture(GL_TEXTURE_2D, m_Runner_Sprite);
 	glActiveTexture(GL_TEXTURE10);
 	glBindTexture(GL_TEXTURE_2D, m_Gunner_Sprite);
+	glActiveTexture(GL_TEXTURE11);
+	glBindTexture(GL_TEXTURE_2D, m_Runner_Sprite_2);
+	glActiveTexture(GL_TEXTURE12);
+	glBindTexture(GL_TEXTURE_2D, m_Flame_Sprite);
 
 
 	// GPU는 하나의 Shader에서 텍스쳐를 한번에 80개 정도 사용할 수 있다.
@@ -1292,7 +1318,6 @@ void Renderer::Draw_Simple_Texture()
 	glDisableVertexAttribArray(a_Texture_UV);
 }
 
-
 void Renderer::Rendering(const float& elapsed_time)
 {
 	// ** Time Update **
@@ -1305,12 +1330,13 @@ void Renderer::Rendering(const float& elapsed_time)
 
 	// ** Render **
 	//Test();
-	//Draw_Proxy_Geometry();
+	Draw_Proxy_Geometry();
 	//Draw_Lec4_Particle();
 	//Draw_Lec5_Particle();
 	//Draw_Sin_Particle();
 	//Draw_SandBox();
-	Draw_Simple_Texture();
+	//Draw_Simple_Texture();
+	//Draw_No_Name();
 }
 
 

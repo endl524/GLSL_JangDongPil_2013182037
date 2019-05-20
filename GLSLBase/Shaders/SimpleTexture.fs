@@ -14,6 +14,12 @@ uniform sampler2D u_Texture_1_Reversed;
 uniform sampler2D u_Sans_Sprite;
 uniform sampler2D u_Runner_Sprite;
 uniform sampler2D u_Gunner_Sprite;
+uniform sampler2D u_Flame_Sprite;
+
+uniform sampler2D u_Runner_Sprite_Reversed;
+uniform float u_X_Index;
+uniform float u_Resolution_X;
+uniform float u_Resolution_Y;
 
 uniform float u_Time;
 
@@ -408,16 +414,16 @@ void main()
     // ==> (2) 시간에 따라 0과 1을 반복하게되는 값을 얻었으므로, 이제 0.5f를 곱해주면된다.
     //
     //
-    
-    float animate_Speed = 12.0f;
+    /*
+    float animate_Speed = 15.0f;
     new_Color = vec4(0.0f);
 
-	new_Texture_UV = vec2( (v_Texture_UV.x / 8.0f) + mod(floor(u_Time * animate_Speed), 8) / 8.0f, 
-                            (1.0f - v_Texture_UV.y) * 0.5f + mod(floor((u_Time + 1.0f) * 0.5f), 2) * 0.5f );
+	new_Texture_UV.x = ( v_Texture_UV.x + mod(floor(u_Time * animate_Speed), 8.0f) ) / 8.0f;
+    new_Texture_UV.y = ( (1.0f - v_Texture_UV.y) + mod(floor((u_Time + 1.0f) * 0.5f), 2.0f) ) / 2.0f;
 
     new_Color = texture(u_Runner_Sprite, new_Texture_UV);
 	FragColor = new_Color;
-    
+    */
 	// =====================================
 
 
@@ -445,7 +451,7 @@ void main()
     //
     //
     /*
-    float animate_Speed = 12.0f;
+    float animate_Speed = 11.0f;
     new_Color = vec4(0.0f);
     
     int dir_index = int(mod(floor((u_Time + 1.0f) * 0.5f), 2));
@@ -458,4 +464,26 @@ void main()
 	FragColor = new_Color;
     */
     // =====================================
+	
+
+
+
+	
+
+    // =====================================
+	// 17. 멀티텍스쳐 다루기 7.
+	// => Sprite 텍스쳐로 애니메이션 구현 3. (실습)
+	
+    new_Color = vec4(0.0f);
+
+	float x_index = floor( fract( u_X_Index / u_Resolution_X ) * u_Resolution_X );
+	float y_index = floor( floor( u_X_Index / u_Resolution_X ) );
+
+	new_Texture_UV.x = ( v_Texture_UV.x + x_index ) / u_Resolution_X;
+    new_Texture_UV.y = ( v_Texture_UV.y + y_index ) / u_Resolution_Y;
+
+    new_Color = texture(u_Flame_Sprite, new_Texture_UV);
+	FragColor = new_Color;
+	
+	// =====================================
 }

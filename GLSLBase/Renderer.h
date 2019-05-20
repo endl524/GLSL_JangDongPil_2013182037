@@ -23,6 +23,8 @@ using namespace std;
 #define SANDBOX_HALF_SIZE 1.0f
 #define FILLALL_RECT_HALF_SIZE 1.0f
 #define SIMPLE_TEXTURE_HALF_SIZE 0.5f
+#define PLANE_WAVE_WIDTH 1.0f
+#define PLANE_WAVE_HEIGHT 1.0f
 
 // [Random] =============================
 #define PARTICLE_RAND_POS_MIN -0.99f
@@ -86,6 +88,7 @@ private:
 	GLuint m_SandBox_Shader = 0;
 	GLuint m_FillAll_Shader = 0;
 	GLuint m_Simple_Texture_Shader = 0;
+	GLuint m_VS_SandBox_Shader = 0;
 
 
 	// Random Engine
@@ -140,6 +143,8 @@ private:
 	GLuint m_Sans_Sprite = 0;
 	GLuint m_Runner_Sprite = 0;
 	GLuint m_Gunner_Sprite = 0;
+	GLuint m_Runner_Sprite_2 = 0;
+	GLuint m_Flame_Sprite = 0;
 
 
 	// [end] ===================================================
