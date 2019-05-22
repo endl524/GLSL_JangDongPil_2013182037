@@ -163,8 +163,8 @@ void Renderer::Create_Proxy_Geometry()
 	float targetPosX = 0.5f;
 	float targetPosY = 0.5f;
 
-	int pointCountX = 32;
-	int pointCountY = 32;
+	int pointCountX = 50;
+	int pointCountY = 50;
 
 	float width = targetPosX - basePosX;
 	float height = targetPosY - basePosY;
@@ -239,6 +239,7 @@ void Renderer::Create_Proxy_Geometry()
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_ProxyGeo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * (pointCountX - 1) * (pointCountY - 1) * 2 * 3 * 3, vertices, GL_STATIC_DRAW);
 
+	delete[] point;
 	delete[] vertices;
 }
 
@@ -1046,6 +1047,11 @@ void Renderer::Draw_Proxy_Geometry()
 	GLuint u_Time = glGetUniformLocation(shader_ID, "u_Time");
 	glUniform1f(u_Time, m_Time);
 
+	GLuint u_Texture = glGetUniformLocation(shader_ID, "u_Texture");
+	glUniform1i(u_Texture, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_Sans_Sprite);
+
 	// ===============================================
 
 	int attribPosition = glGetAttribLocation(shader_ID, "a_Position");
@@ -1054,7 +1060,7 @@ void Renderer::Draw_Proxy_Geometry()
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_ProxyGeo);
 	glVertexAttribPointer(attribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
 
-	glDrawArrays(GL_LINE_STRIP, 0, m_Count_ProxyGeo);
+	glDrawArrays(GL_TRIANGLES, 0, m_Count_ProxyGeo);
 
 	// ===============================================
 
