@@ -89,6 +89,7 @@ private:
 	GLuint m_FillAll_Shader = 0;
 	GLuint m_Simple_Texture_Shader = 0;
 	GLuint m_VS_SandBox_Shader = 0;
+	GLuint m_Simple_Cube_Shader = 0;
 
 
 	// Random Engine
@@ -111,9 +112,6 @@ private:
 	GLuint m_VBO_Particle = 0;
 	GLuint m_Count_of_Particle_Vertice = 0;
 
-	GLuint m_VBO_ProxyGeo = 0;
-	GLuint m_Count_ProxyGeo = 0;
-
 	GLuint m_VBO_Sin_Particle = 0;
 	GLuint m_Count_of_Sin_Particle_Vertice = 0;
 
@@ -122,6 +120,11 @@ private:
 	GLuint m_VBO_FillAll = 0;
 
 	GLuint m_VBO_Simple_Texture = 0;
+
+	GLuint m_VBO_VS_SandBox = 0;
+	GLuint m_Count_ProxyGeo = 0;
+
+	GLuint m_VBO_Simple_Cube = 0;
 
 
 	// Textures
@@ -147,6 +150,15 @@ private:
 	GLuint m_Flame_Sprite = 0;
 
 
+	// Matrices
+	glm::mat4 m_View_Mat4;
+	glm::mat4 m_Ortho_Proj_Mat4;
+	glm::mat4 m_View_Proj_Mat4;
+	glm::vec3 m_Camera_Pos_Vec3;
+	glm::vec3 m_Camera_Up_Vec3;
+	glm::vec3 m_Camera_Lookat_Vec3;
+
+
 	// [end] ===================================================
 
 
@@ -156,7 +168,7 @@ private:
 	// Initializer
 	void Initialize(int windowSizeX, int windowSizeY);
 	void Random_Device_Setting();
-
+	void Matrices_Setting();
 
 	// Utilities
 	bool ReadFile(char* filename, std::string *target);
@@ -167,24 +179,26 @@ private:
 
 	// VBO Create
 	void Create_Vertex_Buffer_Objects();
-	void Create_Proxy_Geometry();
 	void Create_Lec4_Particle_VBO(const int& particle_Count);
 	void Create_Lec5_Particle_VBO(const int& particle_Count);
 	void Create_Sin_Particle_VBO(const int& particle_Count);
 	void Create_SandBox_VBO();
 	void Create_FillAll_VBO();
 	void Create_Simple_Texture_VBO();
+	void Creat_Simple_Cube_VBO();
+	void Create_VS_SandBox_VBO();
 
 
 	// Draw Methods
 	void Test();
-	void Draw_Proxy_Geometry();
+	void Draw_VS_SandBox();
 	void Draw_Lec4_Particle();
 	void Draw_Lec5_Particle();
 	void Draw_Sin_Particle();
 	void Draw_SandBox();
 	void Fill_All(const float& alpha);
 	void Draw_Simple_Texture();
+	void Draw_Simple_Cube();
 	
 
 	// [end] ===================================================

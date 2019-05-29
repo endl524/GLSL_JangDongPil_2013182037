@@ -7,16 +7,35 @@ out vec4 FragColor;
 
 uniform sampler2D u_Texture;
 
-void main()
+void Flag()
 {
-	//======================================
-	// 1. 펄럭이는 깃발 ★
-	// 텍스쳐 및 그레이 스케일 적용.
-
 	vec2 texture_UV = vec2(v_Texture_UV.x, 1.0f - v_Texture_UV.y);
-	vec4 new_Color = vec4(1.0f);//texture(u_Texture, texture_UV);
+	vec4 new_Color = texture(u_Texture, texture_UV);
 
 	FragColor = vec4(new_Color.xyz * v_Grey_Scale, 1.0f);
+}
 
-	//======================================
+void Wave()
+{
+	vec2 texture_UV = vec2(v_Texture_UV.x, 1.0f - v_Texture_UV.y);
+	vec4 new_Color = vec4(1.0f);
+
+	FragColor = vec4(new_Color.xyz * v_Grey_Scale, 1.0f);
+}
+
+void Sphere_Mapping()
+{
+	vec2 texture_UV = vec2(v_Texture_UV.x, 1.0f - v_Texture_UV.y);
+	vec4 new_Color = vec4(1.0f);
+
+	FragColor = vec4(new_Color.xyz * v_Grey_Scale, 1.0f);
+}
+
+
+
+void main()
+{
+	//Flag();
+	//Wave();
+	Sphere_Mapping();
 }

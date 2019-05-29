@@ -12,8 +12,6 @@ const float PI = 3.1416;
 
 
 
-
-
 // Functions ===============================
 
 
@@ -62,8 +60,8 @@ void Wave()
 	
 	for(int i = 0; i < 5; ++i)
 	{
-		distance = length(a_Position.xy - u_Points[i]) * 10.0f * PI * float(i);
-		grey += sin(distance - u_Time * 5.0f);
+		distance = length(a_Position.xy - u_Points[i]) * 8.0f * PI * float(i);
+		grey += sin(distance - u_Time * 4.0f);
 	}
 
 	vec3 new_Pos = a_Position.xyz;
@@ -91,13 +89,13 @@ void Sphere_Mapping()
 
 	for(int i = 0; i < 5; ++i)
 	{
-		distance = length(a_Position.xy - u_Points[i]) * 4.0f * PI * float(2);
-		grey += sin(distance - u_Time);
+		distance = length(a_Position.xy - u_Points[i]) * 2.0f * PI * float(i);
+		grey += sin(distance - u_Time * 4.0f);
 	}
 
 	float r = 0.5f + abs(grey) * 0.1f;
-	float beta = (a_Position.x + 0.5f) * 2.0f * PI;
-	float theta = (a_Position.y + 0.5f) * PI;
+	float beta = (a_Position.x + 0.5f) * 4.0f * PI;
+	float theta = (a_Position.y + 0.5f) * 2.0f * PI;
 	
 	vec3 sphere_Pos = vec3(
 		r * sin(theta) * cos(beta),
@@ -112,10 +110,6 @@ void Sphere_Mapping()
 	v_Grey_Scale = 1.0f;
 	v_Texture_UV = vec2(0.5f, 0.5f) + a_Position.xy;
 }
-
-
-
-
 
 
 

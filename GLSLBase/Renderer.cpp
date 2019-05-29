@@ -28,6 +28,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_FillAll_Shader = CompileShaders("./Shaders/FillAll.vs", "./Shaders/FillAll.fs");
 	m_Simple_Texture_Shader = CompileShaders("./Shaders/SimpleTexture.vs", "./Shaders/SimpleTexture.fs");
 	m_VS_SandBox_Shader = CompileShaders("./Shaders/VSSandBox.vs", "./Shaders/VSSandBox.fs");
+	m_Simple_Cube_Shader= CompileShaders("./Shaders/SimpleCube.vs", "./Shaders/SimpleCube.fs");
 
 	// Load Textures
 	m_Particle_Texture_1 = CreatePngTexture("./Resources/Textures/Test_Cat.png");
@@ -59,19 +60,19 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	// GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE => UV 좌표의 U좌표를 넘어가는 끝부분을 마지막 픽셀의 색상으로 메꿔준다.
 	// GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE => UV 좌표의 V좌표를 넘어가는 끝부분을 마지막 픽셀의 색상으로 메꿔준다.
 
-	//Random Device Setting
 	Random_Device_Setting();
+	Matrices_Setting();
 
 	//Create VBO
 	Create_Vertex_Buffer_Objects();
-	Create_Proxy_Geometry();
 	Create_Lec4_Particle_VBO(PARTICLE_NUMS);
 	Create_Lec5_Particle_VBO(PARTICLE_NUMS);
 	Create_Sin_Particle_VBO(PARTICLE_NUMS);
 	Create_SandBox_VBO();
 	Create_FillAll_VBO();
 	Create_Simple_Texture_VBO();
-	//Create_No_Name_VBO();
+	Create_VS_SandBox_VBO();
+	Creat_Simple_Cube_VBO();
 }
 
 void Renderer::Random_Device_Setting()
@@ -102,6 +103,21 @@ void Renderer::Random_Device_Setting()
 
 	uniform_real_distribution<> temp_random_color(PARTICLE_RAND_COLOR_MIN, PARTICLE_RAND_COLOR_MAX);
 	m_Random_Color = temp_random_color;
+}
+
+void Renderer::Matrices_Setting()
+{
+	// Calc Ortho Projection Matrix
+	m_Ortho_Proj_Mat4 = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 2.0f);
+	
+	// Calc View Matrix
+	m_Camera_Pos_Vec3 = glm::vec3(0.0f, 0.0f, 1.0f);
+	m_Camera_Lookat_Vec3 = glm::vec3(0.0f, 0.0f, 0.0f);
+	m_Camera_Up_Vec3 = glm::vec3(0.0f, 1.0f, 0.0f);
+	m_View_Mat4 = glm::lookAt(m_Camera_Pos_Vec3, m_Camera_Lookat_Vec3, m_Camera_Up_Vec3);
+	
+	// Multiply View and OrthoProjection Matrix
+	m_View_Proj_Mat4 = m_Ortho_Proj_Mat4 * m_View_Mat4;
 }
 
 void Renderer::Create_Vertex_Buffer_Objects() // Renderer::Test()를 위한 VBO 생성기
@@ -154,93 +170,6 @@ void Renderer::Create_Vertex_Buffer_Objects() // Renderer::Test()를 위한 VBO 생�
 	glGenBuffers(1, &m_VBORectColor);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBORectColor);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(color), color, GL_STATIC_DRAW);
-}
-
-void Renderer::Create_Proxy_Geometry()
-{
-	float basePosX = -0.5f;
-	float basePosY = -0.5f;
-	float targetPosX = 0.5f;
-	float targetPosY = 0.5f;
-
-	int pointCountX = 50;
-	int pointCountY = 50;
-
-	float width = targetPosX - basePosX;
-	float height = targetPosY - basePosY;
-
-	float* point = new float[pointCountX * pointCountY * 2];
-	float* vertices = new float[(pointCountX - 1) * (pointCountY - 1) * 2 * 3 * 3];
-	m_Count_ProxyGeo = (pointCountX - 1) * (pointCountY - 1) * 2 * 3;
-
-	// prepare points
-	for (int x = 0; x < pointCountX; ++x)
-	{
-		for (int y = 0; y < pointCountY; ++y)
-		{
-			point[(y * pointCountX + x) * 2 + 0] = basePosX + width * (x / (float)(pointCountX - 1));
-			point[(y * pointCountX + x) * 2 + 1] = basePosY + height * (y / (float)(pointCountY - 1));
-		}
-	}
-
-	// Make Triangles
-	int vertIndex = 0;
-	for (int x = 0; x < pointCountX - 1; ++x)
-	{
-		for (int y = 0; y < pointCountY - 1; ++y)
-		{
-			// Triangle part 1
-			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 0];
-			++vertIndex;
-			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 1];
-			++vertIndex;
-			vertices[vertIndex] = 0.0f;
-			++vertIndex;
-
-			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 0];
-			++vertIndex;
-			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 1];
-			++vertIndex;
-			vertices[vertIndex] = 0.0f;
-			++vertIndex;
-
-			vertices[vertIndex] = point[((y + 1) * pointCountX + x) * 2 + 0];
-			++vertIndex;
-			vertices[vertIndex] = point[((y + 1) * pointCountX + x) * 2 + 1];
-			++vertIndex;
-			vertices[vertIndex] = 0.0f;
-			++vertIndex;
-
-			// Triangle part 2
-			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 0];
-			++vertIndex;
-			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 1];
-			++vertIndex;
-			vertices[vertIndex] = 0.0f;
-			++vertIndex;
-
-			vertices[vertIndex] = point[(y * pointCountX + (x + 1)) * 2 + 0];
-			++vertIndex;
-			vertices[vertIndex] = point[(y * pointCountX + (x + 1)) * 2 + 1];
-			++vertIndex;
-			vertices[vertIndex] = 0.0f;
-			++vertIndex;
-
-			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 0];
-			++vertIndex;
-			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 1];
-			++vertIndex;
-			vertices[vertIndex] = 0.0f;
-			++vertIndex;
-		}
-	}
-
-	glGenBuffers(1, &m_VBO_ProxyGeo);
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_ProxyGeo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * (pointCountX - 1) * (pointCountY - 1) * 2 * 3 * 3, vertices, GL_STATIC_DRAW);
-
-	delete[] point;
-	delete[] vertices;
 }
 
 void Renderer::Create_Lec4_Particle_VBO(const int& particle_Count)
@@ -705,6 +634,153 @@ void Renderer::Create_Simple_Texture_VBO()
 	delete[] Vertices;
 }
 
+void Renderer::Create_VS_SandBox_VBO()
+{
+	float basePosX = -0.5f;
+	float basePosY = -0.5f;
+	float targetPosX = 0.5f;
+	float targetPosY = 0.5f;
+
+	int pointCountX = 50;
+	int pointCountY = 50;
+
+	float width = targetPosX - basePosX;
+	float height = targetPosY - basePosY;
+
+	float* point = new float[pointCountX * pointCountY * 2];
+	float* vertices = new float[(pointCountX - 1) * (pointCountY - 1) * 2 * 3 * 3];
+	m_Count_ProxyGeo = (pointCountX - 1) * (pointCountY - 1) * 2 * 3;
+
+	// prepare points
+	for (int x = 0; x < pointCountX; ++x)
+	{
+		for (int y = 0; y < pointCountY; ++y)
+		{
+			point[(y * pointCountX + x) * 2 + 0] = basePosX + width * (x / (float)(pointCountX - 1));
+			point[(y * pointCountX + x) * 2 + 1] = basePosY + height * (y / (float)(pointCountY - 1));
+		}
+	}
+
+	// Make Triangles
+	int vertIndex = 0;
+	for (int x = 0; x < pointCountX - 1; ++x)
+	{
+		for (int y = 0; y < pointCountY - 1; ++y)
+		{
+			// Triangle part 1
+			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 0];
+			++vertIndex;
+			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 1];
+			++vertIndex;
+			vertices[vertIndex] = 0.0f;
+			++vertIndex;
+
+			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 0];
+			++vertIndex;
+			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 1];
+			++vertIndex;
+			vertices[vertIndex] = 0.0f;
+			++vertIndex;
+
+			vertices[vertIndex] = point[((y + 1) * pointCountX + x) * 2 + 0];
+			++vertIndex;
+			vertices[vertIndex] = point[((y + 1) * pointCountX + x) * 2 + 1];
+			++vertIndex;
+			vertices[vertIndex] = 0.0f;
+			++vertIndex;
+
+			// Triangle part 2
+			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 0];
+			++vertIndex;
+			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 1];
+			++vertIndex;
+			vertices[vertIndex] = 0.0f;
+			++vertIndex;
+
+			vertices[vertIndex] = point[(y * pointCountX + (x + 1)) * 2 + 0];
+			++vertIndex;
+			vertices[vertIndex] = point[(y * pointCountX + (x + 1)) * 2 + 1];
+			++vertIndex;
+			vertices[vertIndex] = 0.0f;
+			++vertIndex;
+
+			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 0];
+			++vertIndex;
+			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 1];
+			++vertIndex;
+			vertices[vertIndex] = 0.0f;
+			++vertIndex;
+		}
+	}
+
+	glGenBuffers(1, &m_VBO_VS_SandBox);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_VS_SandBox);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * (pointCountX - 1) * (pointCountY - 1) * 2 * 3 * 3, vertices, GL_STATIC_DRAW);
+
+	delete[] point;
+	delete[] vertices;
+}
+
+void Renderer::Creat_Simple_Cube_VBO()
+{
+	float temp = 0.5f;
+
+	float cube[] = {
+	-temp, -temp, -temp, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, //x, y, z, nx, ny, nz, r, g, b, a
+	-temp, -temp, temp, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+	-temp, temp, temp, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+
+	temp, temp, -temp, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+	-temp, -temp, -temp, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+	-temp, temp, -temp, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+
+	temp, -temp, temp, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+	-temp, -temp, -temp, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+	temp, -temp, -temp, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+
+	temp, temp, -temp, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+	temp, -temp, -temp, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+	-temp, -temp, -temp, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+
+	-temp, -temp, -temp, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+	-temp, temp, temp, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+	-temp, temp, -temp, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+
+	temp, -temp, temp, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+	-temp, -temp, temp, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+	-temp, -temp, -temp, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+
+	-temp, temp, temp, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+	-temp, -temp, temp, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+	temp, -temp, temp, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+
+	temp, temp, temp, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+	temp, -temp, -temp, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+	temp, temp, -temp, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+
+	temp, -temp, -temp, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+	temp, temp, temp, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+	temp, -temp, temp, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+
+	temp, temp, temp, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+	temp, temp, -temp, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+	-temp, temp, -temp, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+
+	temp, temp, temp, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+	-temp, temp, -temp, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+	-temp, temp, temp, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+
+	temp, temp, temp, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+	-temp, temp, temp, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+	temp, -temp, temp, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+	};
+
+	glGenBuffers(1, &m_VBO_Simple_Cube);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_Simple_Cube);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cube), cube, GL_STATIC_DRAW);
+}
+
+
 //=================================================================
 
 
@@ -1032,45 +1108,6 @@ void Renderer::Draw_Lec5_Particle()
 	glDisableVertexAttribArray(a_Emit_and_Life_Time);
 }
 
-void Renderer::Draw_Proxy_Geometry()
-{
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	// ===============================================
-
-	GLuint shader_ID = m_VS_SandBox_Shader;
-	glUseProgram(shader_ID);
-
-	// ===============================================
-
-	GLuint u_Time = glGetUniformLocation(shader_ID, "u_Time");
-	glUniform1f(u_Time, m_Time);
-
-	GLfloat points[] = { 0.0f, 0.0f, 0.5f, 0.5f, 0.3f, 0.3f, -0.2f, -0.2f, -0.3f, -0.3f };
-	GLuint u_Points = glGetUniformLocation(shader_ID, "u_Points");
-	glUniform2fv(u_Points, 5, points);
-
-	GLuint u_Texture = glGetUniformLocation(shader_ID, "u_Texture");
-	glUniform1i(u_Texture, 0);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, m_Wooden_Box_Texture);
-
-	// ===============================================
-
-	int attribPosition = glGetAttribLocation(shader_ID, "a_Position");
-
-	glEnableVertexAttribArray(attribPosition);
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_ProxyGeo);
-	glVertexAttribPointer(attribPosition, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
-
-	glDrawArrays(GL_LINE_STRIP, 0, m_Count_ProxyGeo);
-
-	// ===============================================
-
-	glDisableVertexAttribArray(attribPosition);
-}
-
 void Renderer::Draw_Sin_Particle()
 {
 	glEnable(GL_BLEND);
@@ -1328,6 +1365,91 @@ void Renderer::Draw_Simple_Texture()
 	glDisableVertexAttribArray(a_Texture_UV);
 }
 
+void Renderer::Draw_VS_SandBox()
+{
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// ===============================================
+
+	GLuint shader_ID = m_VS_SandBox_Shader;
+	glUseProgram(shader_ID);
+
+	// ===============================================
+
+	GLuint u_Time = glGetUniformLocation(shader_ID, "u_Time");
+	glUniform1f(u_Time, m_Time);
+
+	GLfloat points[] = { 0.0f, 0.0f, 0.5f, 0.0f, 0.3f, 0.3f, -0.5f, 0.0f, -0.3f, -0.3f };
+	GLuint u_Points = glGetUniformLocation(shader_ID, "u_Points");
+	glUniform2fv(u_Points, 5, points);
+
+	GLuint u_Texture = glGetUniformLocation(shader_ID, "u_Texture");
+	glUniform1i(u_Texture, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_Wooden_Box_Texture);
+
+	// ===============================================
+
+	int a_Position = glGetAttribLocation(shader_ID, "a_Position");
+
+	glEnableVertexAttribArray(a_Position);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_VS_SandBox);
+	glVertexAttribPointer(a_Position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+
+	glDrawArrays(GL_LINE_STRIP, 0, m_Count_ProxyGeo);
+
+	// ===============================================
+
+	glDisableVertexAttribArray(a_Position);
+}
+
+void Renderer::Draw_Simple_Cube()
+{
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+
+	// ===============================================
+
+	GLuint shader_ID = m_Simple_Cube_Shader;
+	glUseProgram(shader_ID);
+
+	// ===============================================
+
+	GLuint u_Time = glGetUniformLocation(shader_ID, "u_Time");
+	glUniform1f(u_Time, m_Time);
+
+	GLuint u_ProjView_Matrix = glGetUniformLocation(shader_ID, "u_ProjView_Matrix");
+	glUniformMatrix4fv(u_ProjView_Matrix, 1, GL_FALSE, &m_View_Proj_Mat4[0][0]);
+
+	// ===============================================
+
+	int a_Position = glGetAttribLocation(shader_ID, "a_Position");
+	int a_Normal = glGetAttribLocation(shader_ID, "a_Normal");
+	int a_Color = glGetAttribLocation(shader_ID, "a_Color");
+
+	glEnableVertexAttribArray(a_Position);
+	glEnableVertexAttribArray(a_Normal);
+	glEnableVertexAttribArray(a_Color);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_VS_SandBox);
+
+	glVertexAttribPointer(a_Position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+	glVertexAttribPointer(a_Normal, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 10, (GLvoid*)(sizeof(float) * 3));
+	glVertexAttribPointer(a_Color, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 10, (GLvoid*)(sizeof(float) * 6));
+
+	glDrawArrays(GL_LINE_STRIP, 0, 36);
+
+	// ===============================================
+
+	glDisableVertexAttribArray(a_Position);
+	glDisableVertexAttribArray(a_Normal);
+	glDisableVertexAttribArray(a_Color);
+}
+
+
 void Renderer::Rendering(const float& elapsed_time)
 {
 	// ** Time Update **
@@ -1340,13 +1462,13 @@ void Renderer::Rendering(const float& elapsed_time)
 
 	// ** Render **
 	//Test();
-	Draw_Proxy_Geometry();
 	//Draw_Lec4_Particle();
 	//Draw_Lec5_Particle();
 	//Draw_Sin_Particle();
 	//Draw_SandBox();
 	//Draw_Simple_Texture();
-	//Draw_No_Name();
+	//Draw_VS_SandBox();
+	Draw_Simple_Cube();
 }
 
 
