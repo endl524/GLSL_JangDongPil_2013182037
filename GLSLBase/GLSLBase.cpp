@@ -9,16 +9,10 @@ but WITHOUT ANY WARRANTY.
 */
 
 #include "stdafx.h"
-#include <iostream>
 #include "Dependencies\glew.h"
 #include "Dependencies\freeglut.h"
 
-#include <chrono>
-
 #include "Renderer.h"
-
-using namespace std;
-using namespace chrono;
 
 Renderer *g_Renderer = NULL;
 
@@ -27,6 +21,11 @@ int g_WindowSizeY = 600;
 
 time_point<system_clock> g_Prev_Time;
 duration<float> g_Elapsed_Time(0);
+
+int g_Prev_Cursor_Position_X = 0;
+int g_Prev_Cursor_Position_Y = 0;
+bool g_is_Left_Clicked = false;
+bool g_is_Right_Clicked = false;
 
 void RenderScene(void)
 {
@@ -45,17 +44,80 @@ void Idle(void)
 
 void MouseInput(int button, int state, int x, int y)
 {
-	RenderScene();
+	if (button == GLUT_LEFT_BUTTON)
+	{
+		if (state == GLUT_DOWN && !g_is_Left_Clicked && !g_is_Right_Clicked)
+		{
+			// 윈도우 사이즈 변경에 대한 예외처리는 안돼있으니 유의!
+			g_Prev_Cursor_Position_X = x - g_WindowSizeX * 0.5f;
+			g_Prev_Cursor_Position_Y = g_WindowSizeY * 0.5f - y;
+			g_is_Left_Clicked = true;
+		}
+		else if (state == GLUT_UP && g_is_Left_Clicked)
+		{
+			g_Prev_Cursor_Position_X = 0.0f;
+			g_Prev_Cursor_Position_Y = 0.0f;
+			g_is_Left_Clicked = false;
+		}
+		
+	}
+	if (button == GLUT_RIGHT_BUTTON)
+	{
+		if (state == GLUT_DOWN && !g_is_Left_Clicked && !g_is_Right_Clicked)
+		{
+			// 윈도우 사이즈 변경에 대한 예외처리는 안돼있으니 유의!
+			g_Prev_Cursor_Position_X = x - g_WindowSizeX * 0.5f;
+			g_is_Right_Clicked = true;
+		}
+		else if (state == GLUT_UP && g_is_Right_Clicked)
+		{
+			g_Prev_Cursor_Position_X = 0.0f;
+			g_is_Right_Clicked = false;
+		}
+	}
+}
+
+void Mouse_Drag_Input(int x, int y)
+{
+	if (g_is_Left_Clicked)
+	{
+		glm::vec3 pitch_yaw_roll(
+			g_Prev_Cursor_Position_X - (x - g_WindowSizeX * 0.5f),
+			(g_WindowSizeY * 0.5f - y) - g_Prev_Cursor_Position_Y,
+			0.0f
+		);
+		g_Renderer->Camera_Rotate(pitch_yaw_roll, g_Elapsed_Time.count());
+		g_Prev_Cursor_Position_X = x - g_WindowSizeX * 0.5f; g_Prev_Cursor_Position_Y = g_WindowSizeY * 0.5f - y;
+	}
+
+	else if (g_is_Right_Clicked)
+	{
+		glm::vec3 pitch_yaw_roll( 0.0f, 0.0f, g_Prev_Cursor_Position_X - (x - g_WindowSizeX * 0.5f) );
+		g_Renderer->Camera_Rotate(pitch_yaw_roll, g_Elapsed_Time.count());
+		g_Prev_Cursor_Position_X = x - g_WindowSizeX * 0.5f;
+	}
 }
 
 void KeyInput(unsigned char key, int x, int y)
 {
-	RenderScene();
+	switch (key)
+	{
+	case 'w': g_Renderer->Camera_Translate(glm::vec3(0.0f, 0.0f, 1.0f), g_Elapsed_Time.count()); break;
+	case 's': g_Renderer->Camera_Translate(glm::vec3(0.0f, 0.0f, -1.0f), g_Elapsed_Time.count()); break;
+	case 'a': g_Renderer->Camera_Translate(glm::vec3(-1.0f, 0.0f, 0.0f), g_Elapsed_Time.count()); break;
+	case 'd': g_Renderer->Camera_Translate(glm::vec3(1.0f, 0.0f, 0.0f), g_Elapsed_Time.count()); break;
+	case 'r': g_Renderer->Initialize_Camera(); break;
+	case 27: glutLeaveMainLoop(); break;
+	}
 }
 
 void SpecialKeyInput(int key, int x, int y)
 {
-	RenderScene();
+	switch (key)
+	{
+	case GLUT_KEY_UP: g_Renderer->Camera_Translate(glm::vec3(0.0f, 1.0f, 0.0f), g_Elapsed_Time.count()); break;
+	case GLUT_KEY_DOWN: g_Renderer->Camera_Translate(glm::vec3(0.0f, -1.0f, 0.0f), g_Elapsed_Time.count()); break;
+	}
 }
 
 int main(int argc, char **argv)
@@ -83,8 +145,10 @@ int main(int argc, char **argv)
 	glutDisplayFunc(RenderScene);
 	glutIdleFunc(Idle);
 	glutKeyboardFunc(KeyInput);
-	glutMouseFunc(MouseInput);
 	glutSpecialFunc(SpecialKeyInput);
+	glutMouseFunc(MouseInput);
+	glutMotionFunc(Mouse_Drag_Input);
+	
 
 	glutMainLoop();
 

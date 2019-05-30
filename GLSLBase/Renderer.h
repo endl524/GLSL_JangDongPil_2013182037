@@ -1,21 +1,19 @@
 #pragma once
 
-#include <string>
-#include <cstdlib>
-#include <fstream>
-#include <iostream>
 
-
-#include <random>
-
+#include "stdafx.h"
+#include "LoadPng.h"
 
 #include "Dependencies\glew.h"
 #include "Dependencies\wglew.h"
-#include "Dependencies\glm/glm.hpp"
-#include "Dependencies\glm/gtc/matrix_transform.hpp"
-#include "Dependencies\glm/gtx/euler_angles.hpp"
+#include "Dependencies\glm\glm.hpp"
+#include "Dependencies\glm\gtc\matrix_transform.hpp"
+#include "Dependencies\glm\gtx\euler_angles.hpp"
 
-using namespace std;
+#include <Windows.h>
+#include <cstdlib>
+#include <cassert>
+
 
 // [Initial] ============================
 #define PARTICLE_NUMS 100
@@ -150,13 +148,18 @@ private:
 	GLuint m_Flame_Sprite = 0;
 
 
-	// Matrices
+	// Camera
 	glm::mat4 m_View_Mat4;
-	glm::mat4 m_Ortho_Proj_Mat4;
+	glm::mat4 m_Projection_Mat4;
 	glm::mat4 m_View_Proj_Mat4;
+
+	glm::vec3 m_World_Up_Vec3;
 	glm::vec3 m_Camera_Pos_Vec3;
+	glm::vec3 m_Camera_Front_Vec3;
+	glm::vec3 m_Camera_Right_Vec3;
 	glm::vec3 m_Camera_Up_Vec3;
-	glm::vec3 m_Camera_Lookat_Vec3;
+	float m_Camera_Move_Speed;
+	glm::vec3 m_Camera_PYR_Vec3;
 
 
 	// [end] ===================================================
@@ -168,7 +171,7 @@ private:
 	// Initializer
 	void Initialize(int windowSizeX, int windowSizeY);
 	void Random_Device_Setting();
-	void Matrices_Setting();
+	
 
 	// Utilities
 	bool ReadFile(char* filename, std::string *target);
@@ -219,7 +222,13 @@ public:
 
 	// Rendering
 	void Rendering(const float& elapsed_time);
+	
 
+	// Camera
+	void Initialize_Camera();
+	void Camera_Translate(const glm::vec3& weight, const float& elapsed_time);
+	void Camera_Rotate(const glm::vec3& pitch_yaw_roll, const float& elapsed_time);
+	
 
 	// [end] ===================================================
 };

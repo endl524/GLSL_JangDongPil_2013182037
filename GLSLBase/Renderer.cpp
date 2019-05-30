@@ -1,9 +1,5 @@
 #include "stdafx.h"
 #include "Renderer.h"
-#include "LoadPng.h"
-#include <Windows.h>
-#include <cstdlib>
-#include <cassert>
 
 Renderer::Renderer(int windowSizeX, int windowSizeY)
 {
@@ -61,7 +57,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	// GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE => UV 좌표의 V좌표를 넘어가는 끝부분을 마지막 픽셀의 색상으로 메꿔준다.
 
 	Random_Device_Setting();
-	Matrices_Setting();
+	Initialize_Camera();
 
 	//Create VBO
 	Create_Vertex_Buffer_Objects();
@@ -105,19 +101,26 @@ void Renderer::Random_Device_Setting()
 	m_Random_Color = temp_random_color;
 }
 
-void Renderer::Matrices_Setting()
+void Renderer::Initialize_Camera()
 {
-	// Calc Ortho Projection Matrix
-	m_Ortho_Proj_Mat4 = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 2.0f);
+	// Camera Setting
+	m_World_Up_Vec3 = glm::vec3(0.0f, 1.0f, 0.0f);
+	m_Camera_Pos_Vec3 = glm::vec3(0.0f, 1.0f, -2.0f);
+	m_Camera_Front_Vec3 = -m_Camera_Pos_Vec3;
+	m_Camera_Right_Vec3 = glm::normalize(glm::cross(m_Camera_Front_Vec3, m_World_Up_Vec3));
+	m_Camera_Up_Vec3 = glm::normalize(glm::cross(m_Camera_Right_Vec3, m_Camera_Front_Vec3));
+	m_Camera_Move_Speed = 5.0f;
+	m_Camera_PYR_Vec3 = glm::vec3(0.0f, 0.0f, 0.0f);
 	
-	// Calc View Matrix
-	m_Camera_Pos_Vec3 = glm::vec3(0.0f, 0.0f, 1.0f);
-	m_Camera_Lookat_Vec3 = glm::vec3(0.0f, 0.0f, 0.0f);
-	m_Camera_Up_Vec3 = glm::vec3(0.0f, 1.0f, 0.0f);
-	m_View_Mat4 = glm::lookAt(m_Camera_Pos_Vec3, m_Camera_Lookat_Vec3, m_Camera_Up_Vec3);
-	
-	// Multiply View and OrthoProjection Matrix
-	m_View_Proj_Mat4 = m_Ortho_Proj_Mat4 * m_View_Mat4;
+	// Calculate "View Matrix"
+	m_View_Mat4 = glm::lookAt(m_Camera_Pos_Vec3, m_Camera_Pos_Vec3 + m_Camera_Front_Vec3, m_World_Up_Vec3);
+
+	// Calculate "Projection Matrix"
+	//m_Projection_Mat4 = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 100.0f);
+	m_Projection_Mat4 = glm::perspective(45.0f, 1.0f, 0.0f, 100.0f);
+
+	// Multiply "View and Projection Matrix"
+	m_View_Proj_Mat4 = m_Projection_Mat4 * m_View_Mat4;
 }
 
 void Renderer::Create_Vertex_Buffer_Objects() // Renderer::Test()를 위한 VBO 생성기
@@ -724,7 +727,10 @@ void Renderer::Create_VS_SandBox_VBO()
 void Renderer::Creat_Simple_Cube_VBO()
 {
 	float temp = 0.5f;
-
+	int attrib_count = 10;
+	int vertices_count = 36;
+	int array_size = attrib_count * vertices_count;
+	
 	float cube[] = {
 	-temp, -temp, -temp, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, //x, y, z, nx, ny, nz, r, g, b, a
 	-temp, -temp, temp, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
@@ -774,10 +780,10 @@ void Renderer::Creat_Simple_Cube_VBO()
 	-temp, temp, temp, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
 	temp, -temp, temp, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
 	};
-
+	
 	glGenBuffers(1, &m_VBO_Simple_Cube);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_Simple_Cube);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cube), cube, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * array_size, cube, GL_STATIC_DRAW);
 }
 
 
@@ -1387,7 +1393,7 @@ void Renderer::Draw_VS_SandBox()
 	GLuint u_Texture = glGetUniformLocation(shader_ID, "u_Texture");
 	glUniform1i(u_Texture, 0);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, m_Wooden_Box_Texture);
+	glBindTexture(GL_TEXTURE_2D, m_Sans_Sprite);
 
 	// ===============================================
 
@@ -1408,8 +1414,12 @@ void Renderer::Draw_Simple_Cube()
 {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
+	glClear(GL_DEPTH_BUFFER_BIT); // Depth Test가 성공할 때 마다 Depth Buffer는 계속 쌓이게 된다. 그러니 "꼭 지워줄것."
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
+
+	glEnable(GL_CULL_FACE);
 
 	// ===============================================
 
@@ -1424,8 +1434,9 @@ void Renderer::Draw_Simple_Cube()
 	GLuint u_ProjView_Matrix = glGetUniformLocation(shader_ID, "u_ProjView_Matrix");
 	glUniformMatrix4fv(u_ProjView_Matrix, 1, GL_FALSE, &m_View_Proj_Mat4[0][0]);
 
+	// ** m_VBO_Simple_Cube 본문 **
 	// ===============================================
-
+	
 	int a_Position = glGetAttribLocation(shader_ID, "a_Position");
 	int a_Normal = glGetAttribLocation(shader_ID, "a_Normal");
 	int a_Color = glGetAttribLocation(shader_ID, "a_Color");
@@ -1434,19 +1445,48 @@ void Renderer::Draw_Simple_Cube()
 	glEnableVertexAttribArray(a_Normal);
 	glEnableVertexAttribArray(a_Color);
 
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_VS_SandBox);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_Simple_Cube);
 
-	glVertexAttribPointer(a_Position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+	glVertexAttribPointer(a_Position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 10, 0);
 	glVertexAttribPointer(a_Normal, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 10, (GLvoid*)(sizeof(float) * 3));
 	glVertexAttribPointer(a_Color, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 10, (GLvoid*)(sizeof(float) * 6));
 
-	glDrawArrays(GL_LINE_STRIP, 0, 36);
-
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	
 	// ===============================================
 
 	glDisableVertexAttribArray(a_Position);
 	glDisableVertexAttribArray(a_Normal);
 	glDisableVertexAttribArray(a_Color);
+	
+
+
+
+
+
+	// * m_VBO_VS_SandBox 사용 *
+	// ===============================================
+	/*
+	GLfloat points[] = { 0.0f, 0.0f, 0.5f, 0.0f, 0.3f, 0.3f, -0.5f, 0.0f, -0.3f, -0.3f };
+	GLuint u_Points = glGetUniformLocation(shader_ID, "u_Points");
+	glUniform2fv(u_Points, 5, points);
+
+	GLuint u_Texture = glGetUniformLocation(shader_ID, "u_Texture");
+	glUniform1i(u_Texture, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_Sans_Sprite);
+
+	int a_Position = glGetAttribLocation(shader_ID, "a_Position");
+
+	glEnableVertexAttribArray(a_Position);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_VS_SandBox);
+	glVertexAttribPointer(a_Position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+
+	glDrawArrays(GL_TRIANGLES, 0, m_Count_ProxyGeo);
+
+	glDisableVertexAttribArray(a_Position);
+	*/
+	// ===============================================
 }
 
 
@@ -1470,6 +1510,37 @@ void Renderer::Rendering(const float& elapsed_time)
 	//Draw_VS_SandBox();
 	Draw_Simple_Cube();
 }
+
+
+void Renderer::Camera_Translate(const glm::vec3& weight, const float& elapsed_time)
+{
+	float x = weight.x * elapsed_time * m_Camera_Move_Speed;
+	float y = weight.y * elapsed_time * m_Camera_Move_Speed;
+	float z = weight.z * elapsed_time * m_Camera_Move_Speed;
+
+	m_Camera_Pos_Vec3 += z * m_Camera_Front_Vec3;
+	m_Camera_Pos_Vec3 += x * m_Camera_Right_Vec3;
+	m_Camera_Pos_Vec3 += y * m_Camera_Up_Vec3;
+	
+	m_View_Mat4 = glm::lookAt(m_Camera_Pos_Vec3, m_Camera_Pos_Vec3 + m_Camera_Front_Vec3, m_World_Up_Vec3);
+	m_View_Proj_Mat4 = m_Projection_Mat4 * m_View_Mat4;
+}
+
+
+void Renderer::Camera_Rotate(const glm::vec3& pitch_yaw_roll, const float& elapsed_time)
+{
+	m_Camera_PYR_Vec3.x += (pitch_yaw_roll.y * elapsed_time * PI * 2.0f) * 0.05f;
+	m_Camera_PYR_Vec3.y += (pitch_yaw_roll.x * elapsed_time * PI * 2.0f) * 0.05f;
+	m_Camera_PYR_Vec3.z += (pitch_yaw_roll.z * elapsed_time * PI * 2.0f) * 0.05f;
+
+	m_Camera_Front_Vec3 = glm::normalize(glm::vec3(cos(m_Camera_PYR_Vec3.y) * sin(m_Camera_PYR_Vec3.x), sin(m_Camera_PYR_Vec3.y), cos(m_Camera_PYR_Vec3.y) * cos(m_Camera_PYR_Vec3.x)));
+	m_Camera_Right_Vec3 = glm::normalize(glm::cross(m_Camera_Front_Vec3, m_World_Up_Vec3));
+	m_Camera_Up_Vec3 = glm::normalize(glm::cross(m_Camera_Right_Vec3, m_Camera_Front_Vec3));
+
+	m_View_Mat4 = glm::lookAt(m_Camera_Pos_Vec3, m_Camera_Pos_Vec3 + m_Camera_Front_Vec3, m_World_Up_Vec3);
+	m_View_Proj_Mat4 = m_Projection_Mat4 * m_View_Mat4;
+}
+
 
 
 // ================================================================
