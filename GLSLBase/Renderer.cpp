@@ -36,6 +36,10 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_Number_Texture_2 = CreatePngTexture("./Resources/Textures/Number_Texture_2.png");
 	m_Particle_Texture_3 = CreatePngTexture("./Resources/Textures/Test_Cat_2.png");
 
+	m_Height_Map_Texture = CreatePngTexture("./Resources/Textures/Height_Map.png");
+	m_Snow_Texture = CreatePngTexture("./Resources/Textures/Snow_Texture.png");
+	m_Grass_Texture = CreatePngTexture("./Resources/Textures/Grass_Texture.png");
+
 	// Load Sprites
 	m_Sans_Sprite = CreatePngTexture("./Resources/Sprites/Sans_Sprite.png");
 	m_Runner_Sprite = CreatePngTexture("./Resources/Sprites/Runner_Sprite.png");
@@ -106,7 +110,7 @@ void Renderer::Initialize_Camera()
 	// Camera Setting
 	m_World_Up_Vec3 = glm::vec3(0.0f, 1.0f, 0.0f);
 	m_Camera_Pos_Vec3 = glm::vec3(0.0f, 1.0f, -2.0f);
-	m_Camera_Front_Vec3 = -m_Camera_Pos_Vec3;
+	m_Camera_Front_Vec3 = glm::normalize(-m_Camera_Pos_Vec3);
 	m_Camera_Right_Vec3 = glm::normalize(glm::cross(m_Camera_Front_Vec3, m_World_Up_Vec3));
 	m_Camera_Up_Vec3 = glm::normalize(glm::cross(m_Camera_Right_Vec3, m_Camera_Front_Vec3));
 	m_Camera_Move_Speed = 5.0f;
@@ -117,7 +121,7 @@ void Renderer::Initialize_Camera()
 
 	// Calculate "Projection Matrix"
 	//m_Projection_Mat4 = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 100.0f);
-	m_Projection_Mat4 = glm::perspective(45.0f, 1.0f, 0.0f, 100.0f);
+	m_Projection_Mat4 = glm::perspective(PI * 0.5f, 1.0f, 0.001f, 100.0f);
 
 	// Multiply "View and Projection Matrix"
 	m_View_Proj_Mat4 = m_Projection_Mat4 * m_View_Mat4;
@@ -1410,6 +1414,7 @@ void Renderer::Draw_VS_SandBox()
 	glDisableVertexAttribArray(a_Position);
 }
 
+//#define RENDER_CUBE
 void Renderer::Draw_Simple_Cube()
 {
 	glEnable(GL_BLEND);
@@ -1431,9 +1436,10 @@ void Renderer::Draw_Simple_Cube()
 	GLuint u_Time = glGetUniformLocation(shader_ID, "u_Time");
 	glUniform1f(u_Time, m_Time);
 
-	GLuint u_ProjView_Matrix = glGetUniformLocation(shader_ID, "u_ProjView_Matrix");
-	glUniformMatrix4fv(u_ProjView_Matrix, 1, GL_FALSE, &m_View_Proj_Mat4[0][0]);
+	GLuint u_ViewProj_Matrix = glGetUniformLocation(shader_ID, "u_ViewProj_Matrix");
+	glUniformMatrix4fv(u_ViewProj_Matrix, 1, GL_FALSE, &m_View_Proj_Mat4[0][0]);
 
+#ifdef RENDER_CUBE
 	// ** m_VBO_Simple_Cube 본문 **
 	// ===============================================
 	
@@ -1461,12 +1467,10 @@ void Renderer::Draw_Simple_Cube()
 	
 
 
-
-
-
+#else
 	// * m_VBO_VS_SandBox 사용 *
 	// ===============================================
-	/*
+	
 	GLfloat points[] = { 0.0f, 0.0f, 0.5f, 0.0f, 0.3f, 0.3f, -0.5f, 0.0f, -0.3f, -0.3f };
 	GLuint u_Points = glGetUniformLocation(shader_ID, "u_Points");
 	glUniform2fv(u_Points, 5, points);
@@ -1475,6 +1479,22 @@ void Renderer::Draw_Simple_Cube()
 	glUniform1i(u_Texture, 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_Sans_Sprite);
+
+	GLuint u_Texture_Height_Map = glGetUniformLocation(shader_ID, "u_Texture_Height_Map");
+	glUniform1i(u_Texture_Height_Map, 1);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, m_Height_Map_Texture);
+
+	GLuint u_Texture_Snow = glGetUniformLocation(shader_ID, "u_Texture_Snow");
+	glUniform1i(u_Texture_Snow, 2);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, m_Snow_Texture);
+
+	GLuint u_Texture_Grass = glGetUniformLocation(shader_ID, "u_Texture_Grass");
+	glUniform1i(u_Texture_Grass, 3);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, m_Grass_Texture);
+
 
 	int a_Position = glGetAttribLocation(shader_ID, "a_Position");
 
@@ -1485,8 +1505,10 @@ void Renderer::Draw_Simple_Cube()
 	glDrawArrays(GL_TRIANGLES, 0, m_Count_ProxyGeo);
 
 	glDisableVertexAttribArray(a_Position);
-	*/
+	
 	// ===============================================
+
+#endif
 }
 
 
@@ -1527,10 +1549,11 @@ void Renderer::Camera_Translate(const glm::vec3& weight, const float& elapsed_ti
 }
 
 
+// Quat으로 교체할것.
 void Renderer::Camera_Rotate(const glm::vec3& pitch_yaw_roll, const float& elapsed_time)
 {
-	m_Camera_PYR_Vec3.x += (pitch_yaw_roll.y * elapsed_time * PI * 2.0f) * 0.05f;
-	m_Camera_PYR_Vec3.y += (pitch_yaw_roll.x * elapsed_time * PI * 2.0f) * 0.05f;
+	m_Camera_PYR_Vec3.x += (pitch_yaw_roll.x * elapsed_time * PI * 2.0f) * 0.05f;
+	m_Camera_PYR_Vec3.y += (pitch_yaw_roll.y * elapsed_time * PI * 2.0f) * 0.05f;
 	m_Camera_PYR_Vec3.z += (pitch_yaw_roll.z * elapsed_time * PI * 2.0f) * 0.05f;
 
 	m_Camera_Front_Vec3 = glm::normalize(glm::vec3(cos(m_Camera_PYR_Vec3.y) * sin(m_Camera_PYR_Vec3.x), sin(m_Camera_PYR_Vec3.y), cos(m_Camera_PYR_Vec3.y) * cos(m_Camera_PYR_Vec3.x)));

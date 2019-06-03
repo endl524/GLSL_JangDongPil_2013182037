@@ -139,6 +139,10 @@ private:
 	GLuint m_Number_Texture = 0;
 	GLuint m_Number_Texture_2 = 0;
 
+	GLuint m_Height_Map_Texture = 0;
+	GLuint m_Snow_Texture = 0;
+	GLuint m_Grass_Texture = 0;
+
 
 	// Sprites
 	GLuint m_Sans_Sprite = 0;
