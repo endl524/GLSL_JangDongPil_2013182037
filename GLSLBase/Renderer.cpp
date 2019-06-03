@@ -108,14 +108,11 @@ void Renderer::Random_Device_Setting()
 void Renderer::Initialize_Camera()
 {
 	// Camera Setting
-	m_World_Up_Vec3 = glm::vec3(0.0f, 1.0f, 0.0f);
-	m_Camera_Pos_Vec3 = glm::vec3(0.0f, 1.0f, -2.0f);
-	m_Camera_Front_Vec3 = glm::normalize(-m_Camera_Pos_Vec3);
-	m_Camera_Right_Vec3 = glm::normalize(glm::cross(m_Camera_Front_Vec3, m_World_Up_Vec3));
-	m_Camera_Up_Vec3 = glm::normalize(glm::cross(m_Camera_Right_Vec3, m_Camera_Front_Vec3));
-	m_Camera_Move_Speed = 5.0f;
-	m_Camera_PYR_Vec3 = glm::vec3(0.0f, 0.0f, 0.0f);
-	
+	m_World_Up_Vec3 = glm::vec3(0.0f, 0.0f, 1.0f);
+	m_Camera_Pos_Vec3 = glm::vec3(0.0f, -1.0f, 1.0f);
+	m_Camera_Front_Vec3 = -m_Camera_Pos_Vec3;
+	Camera_Axis_Update();
+
 	// Calculate "View Matrix"
 	m_View_Mat4 = glm::lookAt(m_Camera_Pos_Vec3, m_Camera_Pos_Vec3 + m_Camera_Front_Vec3, m_World_Up_Vec3);
 
@@ -1534,31 +1531,36 @@ void Renderer::Rendering(const float& elapsed_time)
 }
 
 
-void Renderer::Camera_Translate(const glm::vec3& weight, const float& elapsed_time)
-{
-	float x = weight.x * elapsed_time * m_Camera_Move_Speed;
-	float y = weight.y * elapsed_time * m_Camera_Move_Speed;
-	float z = weight.z * elapsed_time * m_Camera_Move_Speed;
 
-	m_Camera_Pos_Vec3 += z * m_Camera_Front_Vec3;
-	m_Camera_Pos_Vec3 += x * m_Camera_Right_Vec3;
-	m_Camera_Pos_Vec3 += y * m_Camera_Up_Vec3;
+void Renderer::Camera_Axis_Update()
+{
+	m_Camera_Front_Vec3 = glm::normalize(m_Camera_Front_Vec3);
+	m_Camera_Right_Vec3 = glm::normalize(glm::cross(m_Camera_Front_Vec3, m_World_Up_Vec3));
+	m_Camera_Up_Vec3 = glm::normalize(glm::cross(m_Camera_Right_Vec3, m_Camera_Front_Vec3));
+}
+
+void Renderer::Camera_Translate(const glm::vec3& velocity)
+{
+	m_Camera_Pos_Vec3 += velocity.z * m_Camera_Front_Vec3;
+	m_Camera_Pos_Vec3 += velocity.x * m_Camera_Right_Vec3;
+	m_Camera_Pos_Vec3 += velocity.y * m_Camera_Up_Vec3;
 	
 	m_View_Mat4 = glm::lookAt(m_Camera_Pos_Vec3, m_Camera_Pos_Vec3 + m_Camera_Front_Vec3, m_World_Up_Vec3);
 	m_View_Proj_Mat4 = m_Projection_Mat4 * m_View_Mat4;
 }
 
-
-// Quat으로 교체할것.
-void Renderer::Camera_Rotate(const glm::vec3& pitch_yaw_roll, const float& elapsed_time)
+void Renderer::Camera_Rotate(const glm::vec3& rot_axis_xyz)
 {
-	m_Camera_PYR_Vec3.x += (pitch_yaw_roll.x * elapsed_time * PI * 2.0f) * 0.05f;
-	m_Camera_PYR_Vec3.y += (pitch_yaw_roll.y * elapsed_time * PI * 2.0f) * 0.05f;
-	m_Camera_PYR_Vec3.z += (pitch_yaw_roll.z * elapsed_time * PI * 2.0f) * 0.05f;
+	glm::vec3 EulerAngles(rot_axis_xyz * PI * 0.001f);
+	glm::quat quat;
+	quat = glm::angleAxis(glm::degrees(EulerAngles.x), m_Camera_Right_Vec3); // 현재 "Camera의 Right 벡터"에 대해 "Camera의 Front 벡터"를 회전.
+	m_Camera_Front_Vec3 = glm::mat4_cast(quat) * glm::vec4(m_Camera_Front_Vec3, 0.0f);
+	quat = glm::angleAxis(glm::degrees(EulerAngles.y), m_Camera_Up_Vec3); // 현재 "Camera의 Up 벡터"에 대해 "Camera의 Front 벡터"를 회전.
+	m_Camera_Front_Vec3 = glm::mat4_cast(quat) * glm::vec4(m_Camera_Front_Vec3, 0.0f);
+	quat = glm::angleAxis(glm::degrees(EulerAngles.z), m_Camera_Front_Vec3); // 현재 "Camera의 Front 벡터"에 대해 "World의 Up 벡터"를 회전.
+	m_World_Up_Vec3 = glm::mat4_cast(quat) * glm::vec4(m_World_Up_Vec3, 0.0f);
 
-	m_Camera_Front_Vec3 = glm::normalize(glm::vec3(cos(m_Camera_PYR_Vec3.y) * sin(m_Camera_PYR_Vec3.x), sin(m_Camera_PYR_Vec3.y), cos(m_Camera_PYR_Vec3.y) * cos(m_Camera_PYR_Vec3.x)));
-	m_Camera_Right_Vec3 = glm::normalize(glm::cross(m_Camera_Front_Vec3, m_World_Up_Vec3));
-	m_Camera_Up_Vec3 = glm::normalize(glm::cross(m_Camera_Right_Vec3, m_Camera_Front_Vec3));
+	Camera_Axis_Update();
 
 	m_View_Mat4 = glm::lookAt(m_Camera_Pos_Vec3, m_Camera_Pos_Vec3 + m_Camera_Front_Vec3, m_World_Up_Vec3);
 	m_View_Proj_Mat4 = m_Projection_Mat4 * m_View_Mat4;

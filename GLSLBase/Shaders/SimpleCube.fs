@@ -68,8 +68,8 @@ void main()
     //Flag();
     //Wave();
     //Sphere_Mapping();
-    //Height_Map();
-	Height_Map_2();
+    Height_Map();
+	//Height_Map_2();
 
-	//Cube();
+    //Cube();
 }

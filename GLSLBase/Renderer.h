@@ -9,6 +9,8 @@
 #include "Dependencies\glm\glm.hpp"
 #include "Dependencies\glm\gtc\matrix_transform.hpp"
 #include "Dependencies\glm\gtx\euler_angles.hpp"
+#include "Dependencies\glm\gtx\quaternion.hpp"
+
 
 #include <Windows.h>
 #include <cstdlib>
@@ -162,8 +164,6 @@ private:
 	glm::vec3 m_Camera_Front_Vec3;
 	glm::vec3 m_Camera_Right_Vec3;
 	glm::vec3 m_Camera_Up_Vec3;
-	float m_Camera_Move_Speed;
-	glm::vec3 m_Camera_PYR_Vec3;
 
 
 	// [end] ===================================================
@@ -206,6 +206,11 @@ private:
 	void Fill_All(const float& alpha);
 	void Draw_Simple_Texture();
 	void Draw_Simple_Cube();
+
+
+	// Camera
+	void Camera_Axis_Update();
+
 	
 
 	// [end] ===================================================
@@ -230,8 +235,8 @@ public:
 
 	// Camera
 	void Initialize_Camera();
-	void Camera_Translate(const glm::vec3& weight, const float& elapsed_time);
-	void Camera_Rotate(const glm::vec3& pitch_yaw_roll, const float& elapsed_time);
+	void Camera_Translate(const glm::vec3& weight);
+	void Camera_Rotate(const glm::vec3& rot_axis_xyz);
 	
 
 	// [end] ===================================================
