@@ -120,12 +120,13 @@ void Height_Map_Normal()
 {
 	// 하이트맵에서 Normal 값 구하기.
 
+	// gap == 정점 좌표 Offset 값
 	float gap = 1.0f / 100.0f;
 
 	// 1. 현재의 UV 좌표와 임의의 두 UV 좌표(현재 좌표와 인접한 정점들 중 에서..)를 구해준다.
 	vec2 new_UV = a_Position.xy + vec2(0.5f, 0.5f);
-	vec2 new_UV_Right = a_Position.xy + vec2(0.5f, 0.5f) + vec2(gap, 0.0f);
-	vec2 new_UV_Up = a_Position.xy + vec2(0.5f, 0.5f) + vec2(0.0f, gap);
+	vec2 new_UV_Right = a_Position.xy + vec2(0.5f + gap, 0.5f);
+	vec2 new_UV_Up = a_Position.xy + vec2(0.5f, 0.5f + gap);
 
 	// 2. 각 UV 좌표를 통해 텍스쳐 샘플링을 진행하여 높이값을 얻는다.
 	float height = texture(u_Texture_Height_Map, new_UV).r;
@@ -133,19 +134,19 @@ void Height_Map_Normal()
 	float height_Up = texture(u_Texture_Height_Map, new_UV_Up).r;
 
 	// 3. 얻어온 높이값을 정점 좌표에 적용시킨다.
-	vec3 new_Pos = vec3(a_Position.xy, a_Position.z + height * 0.2f) + vec3(sin(u_Time), cos(u_Time), 0.0f);
-	vec3 new_Pos_Right = vec3(a_Position.xy + vec2(gap, 0.0f), a_Position.z + height_Right * 0.2f);
-	vec3 new_Pos_Up = vec3(a_Position.xy + vec2(0.0f, gap), a_Position.z + height_Up * 0.2f);
+	vec3 new_Pos = a_Position + vec3(0.0f, 0.0f, height * 0.2f);
+	vec3 new_Pos_Right = a_Position + vec3(gap, 0.0f, height_Right * 0.2f);
+	vec3 new_Pos_Up = a_Position + vec3(0.0f, gap, height_Up * 0.2f);
 
 	// 4. 세 정점 좌표를 통해 노말값을 구한다.
 	vec3 diff1 = new_Pos_Right - new_Pos;
 	vec3 diff2 = new_Pos_Up - new_Pos;
-	vec3 normal = cross(diff2, diff1);
+	vec3 normal = normalize(cross(diff1, diff2));
 	
 	gl_Position = u_ViewProj_Matrix * vec4(new_Pos.xyz, 1.0f);
 	v_Grey_Scale = height;
 	v_Texture_UV = new_UV;
-	v_Normal = normalize(normal);
+	v_Normal = normal;
 	v_Pos = new_Pos;
 }
 
