@@ -36,6 +36,6 @@ void Sphere_Mapping()
 void main()
 {
 	//Flag();
-	//Wave();
-	Sphere_Mapping();
+	Wave();
+	//Sphere_Mapping();
 }

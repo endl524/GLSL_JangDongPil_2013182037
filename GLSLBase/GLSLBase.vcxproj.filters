@@ -53,12 +53,6 @@
     <None Include="Shaders\FillAll.vs">
       <Filter>Shader</Filter>
     </None>
-    <None Include="Shaders\SandBox.fs">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="Shaders\SandBox.vs">
-      <Filter>Shader</Filter>
-    </None>
     <None Include="Shaders\SimpleTexture.fs">
       <Filter>Shader</Filter>
     </None>
@@ -75,6 +69,12 @@
       <Filter>Shader</Filter>
     </None>
     <None Include="Shaders\SimpleCube.vs">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Shaders\FSSandBox.fs">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="Shaders\FSSandBox.vs">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>

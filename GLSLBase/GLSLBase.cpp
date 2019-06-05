@@ -33,7 +33,7 @@ bool g_is_Left_Clicked = false;
 bool g_is_Right_Clicked = false;
 
 #define CAMERA_TRANSLATION_TIMER 0
-#define CAMERA_SPEED 2.0f
+#define CAMERA_SPEED 1.0f
 glm::vec3 g_Camera_Cumulated_Velocity;
 // ===============================
 

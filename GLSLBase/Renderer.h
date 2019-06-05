@@ -85,7 +85,7 @@ private:
 	GLuint m_SolidRectShader = 0;
 	GLuint m_SimpleParticleShader = 0;
 	GLuint m_Sin_Particle_Shader = 0;
-	GLuint m_SandBox_Shader = 0;
+	GLuint m_FS_SandBox_Shader = 0;
 	GLuint m_FillAll_Shader = 0;
 	GLuint m_Simple_Texture_Shader = 0;
 	GLuint m_VS_SandBox_Shader = 0;
@@ -115,7 +115,7 @@ private:
 	GLuint m_VBO_Sin_Particle = 0;
 	GLuint m_Count_of_Sin_Particle_Vertice = 0;
 
-	GLuint m_VBO_SandBox = 0;
+	GLuint m_VBO_FS_SandBox = 0;
 	
 	GLuint m_VBO_FillAll = 0;
 
@@ -141,10 +141,11 @@ private:
 	GLuint m_Number_Texture = 0;
 	GLuint m_Number_Texture_2 = 0;
 
+	// Height Map
 	GLuint m_Height_Map_Texture = 0;
 	GLuint m_Snow_Texture = 0;
 	GLuint m_Grass_Texture = 0;
-
+	GLuint m_Height_Map_Texture_2 = 0;
 
 	// Sprites
 	GLuint m_Sans_Sprite = 0;
@@ -189,22 +190,22 @@ private:
 	void Create_Lec4_Particle_VBO(const int& particle_Count);
 	void Create_Lec5_Particle_VBO(const int& particle_Count);
 	void Create_Sin_Particle_VBO(const int& particle_Count);
-	void Create_SandBox_VBO();
+	void Create_FS_SandBox_VBO();
 	void Create_FillAll_VBO();
 	void Create_Simple_Texture_VBO();
-	void Creat_Simple_Cube_VBO();
 	void Create_VS_SandBox_VBO();
+	void Creat_Simple_Cube_VBO();
 
 
 	// Draw Methods
 	void Test();
-	void Draw_VS_SandBox();
 	void Draw_Lec4_Particle();
 	void Draw_Lec5_Particle();
 	void Draw_Sin_Particle();
-	void Draw_SandBox();
+	void Draw_FS_SandBox();
 	void Fill_All(const float& alpha);
 	void Draw_Simple_Texture();
+	void Draw_VS_SandBox();
 	void Draw_Simple_Cube();
 
 

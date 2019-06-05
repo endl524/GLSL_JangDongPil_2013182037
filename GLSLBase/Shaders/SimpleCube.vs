@@ -5,19 +5,18 @@ in vec3 a_Normal;
 in vec4 a_Color;
 
 out vec4 v_Color;
+out float v_Grey_Scale;
+out vec2 v_Texture_UV;
+out vec3 v_Normal;
+out vec3 v_Pos;
 
 uniform float u_Time;
 uniform mat4 u_ViewProj_Matrix;
-
-const float PI = 3.1416f;
-
-
-//VSSandBox 예제용========
-out float v_Grey_Scale;
-out vec2 v_Texture_UV;
 uniform vec2 u_Points[5];
 uniform sampler2D u_Texture_Height_Map;
-//=======================
+uniform sampler2D u_Texture_Height_Map_2;
+
+const float PI = 3.1416f;
 
 void Flag()
 {
@@ -56,7 +55,7 @@ void Wave()
 	
 	for(int i = 0; i < 5; ++i)
 	{
-		distance = length(a_Position.xy - u_Points[i]) * 8.0f * PI * float(i);
+		distance = length(a_Position.xy - u_Points[i]) * 4.0f * PI * float(i);
 		grey += sin(distance - u_Time * 4.0f);
 	}
 
@@ -107,13 +106,47 @@ void Height_Map()
 	// 첫줄의 vec2 new_UV = a_Position.xy + vec2(0.5f, 0.5f); 에서
 	// vec2(0.5f + u_Time * 0.1f, 0.5f); 처럼 시간 값을 더해주면 된다.
 
-	vec2 new_UV = a_Position.xy + vec2(0.5f + u_Time * 0.1f, 0.5f);
+	vec2 new_UV = a_Position.xy + vec2(0.5f, 0.5f);
 	float height = texture(u_Texture_Height_Map, new_UV).r; // 텍스쳐 좌표의 색상 하나를 샘플링. (어차피 Grey scale 이므로..)
 	vec3 new_Pos = vec3(a_Position.xy, a_Position.z + height * 0.2f);
 
 	gl_Position = u_ViewProj_Matrix * vec4(new_Pos.xyz, 1.0f);
 	v_Grey_Scale = height;
 	v_Texture_UV = new_UV;
+}
+
+
+void Height_Map_Normal()
+{
+	// 하이트맵에서 Normal 값 구하기.
+
+	float gap = 1.0f / 100.0f;
+
+	// 1. 현재의 UV 좌표와 임의의 두 UV 좌표(현재 좌표와 인접한 정점들 중 에서..)를 구해준다.
+	vec2 new_UV = a_Position.xy + vec2(0.5f, 0.5f);
+	vec2 new_UV_Right = a_Position.xy + vec2(0.5f, 0.5f) + vec2(gap, 0.0f);
+	vec2 new_UV_Up = a_Position.xy + vec2(0.5f, 0.5f) + vec2(0.0f, gap);
+
+	// 2. 각 UV 좌표를 통해 텍스쳐 샘플링을 진행하여 높이값을 얻는다.
+	float height = texture(u_Texture_Height_Map, new_UV).r;
+	float height_Right = texture(u_Texture_Height_Map, new_UV_Right).r;
+	float height_Up = texture(u_Texture_Height_Map, new_UV_Up).r;
+
+	// 3. 얻어온 높이값을 정점 좌표에 적용시킨다.
+	vec3 new_Pos = vec3(a_Position.xy, a_Position.z + height * 0.2f) + vec3(sin(u_Time), cos(u_Time), 0.0f);
+	vec3 new_Pos_Right = vec3(a_Position.xy + vec2(gap, 0.0f), a_Position.z + height_Right * 0.2f);
+	vec3 new_Pos_Up = vec3(a_Position.xy + vec2(0.0f, gap), a_Position.z + height_Up * 0.2f);
+
+	// 4. 세 정점 좌표를 통해 노말값을 구한다.
+	vec3 diff1 = new_Pos_Right - new_Pos;
+	vec3 diff2 = new_Pos_Up - new_Pos;
+	vec3 normal = cross(diff2, diff1);
+	
+	gl_Position = u_ViewProj_Matrix * vec4(new_Pos.xyz, 1.0f);
+	v_Grey_Scale = height;
+	v_Texture_UV = new_UV;
+	v_Normal = normalize(normal);
+	v_Pos = new_Pos;
 }
 
 
@@ -131,7 +164,8 @@ void main()
 	//Flag();
 	//Wave();
 	//Sphere_Mapping();
-	Height_Map();
+	//Height_Map();
+	Height_Map_Normal();
 
 	//Cube();
 }

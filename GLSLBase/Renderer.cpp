@@ -20,7 +20,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_SolidRectShader = CompileShaders("./Shaders/SolidRect.vs", "./Shaders/SolidRect.fs");
 	m_SimpleParticleShader = CompileShaders("./Shaders/SimpleParticle.vs", "./Shaders/SimpleParticle.fs");
 	m_Sin_Particle_Shader = CompileShaders("./Shaders/SinParticle.vs", "./Shaders/SinParticle.fs");
-	m_SandBox_Shader = CompileShaders("./Shaders/SandBox.vs", "./Shaders/SandBox.fs");
+	m_FS_SandBox_Shader = CompileShaders("./Shaders/FSSandBox.vs", "./Shaders/FSSandBox.fs");
 	m_FillAll_Shader = CompileShaders("./Shaders/FillAll.vs", "./Shaders/FillAll.fs");
 	m_Simple_Texture_Shader = CompileShaders("./Shaders/SimpleTexture.vs", "./Shaders/SimpleTexture.fs");
 	m_VS_SandBox_Shader = CompileShaders("./Shaders/VSSandBox.vs", "./Shaders/VSSandBox.fs");
@@ -36,9 +36,11 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_Number_Texture_2 = CreatePngTexture("./Resources/Textures/Number_Texture_2.png");
 	m_Particle_Texture_3 = CreatePngTexture("./Resources/Textures/Test_Cat_2.png");
 
+	// Load Height Map Textures
 	m_Height_Map_Texture = CreatePngTexture("./Resources/Textures/Height_Map.png");
 	m_Snow_Texture = CreatePngTexture("./Resources/Textures/Snow_Texture.png");
 	m_Grass_Texture = CreatePngTexture("./Resources/Textures/Grass_Texture.png");
+	m_Height_Map_Texture_2 = CreatePngTexture("./Resources/Textures/Height_Map_2.png");
 
 	// Load Sprites
 	m_Sans_Sprite = CreatePngTexture("./Resources/Sprites/Sans_Sprite.png");
@@ -68,7 +70,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	Create_Lec4_Particle_VBO(PARTICLE_NUMS);
 	Create_Lec5_Particle_VBO(PARTICLE_NUMS);
 	Create_Sin_Particle_VBO(PARTICLE_NUMS);
-	Create_SandBox_VBO();
+	Create_FS_SandBox_VBO();
 	Create_FillAll_VBO();
 	Create_Simple_Texture_VBO();
 	Create_VS_SandBox_VBO();
@@ -109,7 +111,7 @@ void Renderer::Initialize_Camera()
 {
 	// Camera Setting
 	m_World_Up_Vec3 = glm::vec3(0.0f, 0.0f, 1.0f);
-	m_Camera_Pos_Vec3 = glm::vec3(0.0f, -1.0f, 1.0f);
+	m_Camera_Pos_Vec3 = glm::vec3(0.0f, -1.0f, 0.5f);
 	m_Camera_Front_Vec3 = -m_Camera_Pos_Vec3;
 	Camera_Axis_Update();
 
@@ -464,7 +466,7 @@ void Renderer::Create_Sin_Particle_VBO(const int& particle_Count)
 	delete[] Particles_Vertice;
 }
 
-void Renderer::Create_SandBox_VBO()
+void Renderer::Create_FS_SandBox_VBO()
 {
 	float temp_Pos_X, temp_Pos_Y; // 초기 위치
 	float temp_Color_R = 1.0f, temp_Color_G = 1.0f, temp_Color_B = 1.0f, temp_Color_A = 1.0f; // 색상
@@ -537,8 +539,8 @@ void Renderer::Create_SandBox_VBO()
 		Vertices[i] = 0.0f;
 	}
 
-	glGenBuffers(1, &m_VBO_SandBox);
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_SandBox);
+	glGenBuffers(1, &m_VBO_FS_SandBox);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_FS_SandBox);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * array_Length, Vertices, GL_STATIC_DRAW);
 
 	delete[] Vertices;
@@ -1174,7 +1176,7 @@ void Renderer::Draw_Sin_Particle()
 	glDisableVertexAttribArray(a_Color);
 }
 
-void Renderer::Draw_SandBox()
+void Renderer::Draw_FS_SandBox()
 {
 	// prepare points
 	GLfloat points[] = { 0.0f, 0.0f, 0.5f, 0.5f, 0.3f, 0.3f, -0.2f, -0.2f, -0.3f, -0.3f };
@@ -1184,7 +1186,7 @@ void Renderer::Draw_SandBox()
 
 	// ===============================================
 
-	GLuint shader_ID = m_SandBox_Shader;
+	GLuint shader_ID = m_FS_SandBox_Shader;
 	glUseProgram(shader_ID);
 
 	// ===============================================
@@ -1207,7 +1209,7 @@ void Renderer::Draw_SandBox()
 
 	// ===============================================
 
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_SandBox);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_FS_SandBox);
 	glVertexAttribPointer(a_Position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 9, 0);
 	glVertexAttribPointer(a_Color, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 9, (GLvoid*)(sizeof(float) * 3));
 	glVertexAttribPointer(a_UV, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 9, (GLvoid*)(sizeof(float) * 7));
@@ -1436,6 +1438,10 @@ void Renderer::Draw_Simple_Cube()
 	GLuint u_ViewProj_Matrix = glGetUniformLocation(shader_ID, "u_ViewProj_Matrix");
 	glUniformMatrix4fv(u_ViewProj_Matrix, 1, GL_FALSE, &m_View_Proj_Mat4[0][0]);
 
+	GLuint u_Camera_Position = glGetUniformLocation(shader_ID, "u_Camera_Position");
+	glUniform3f(u_Camera_Position, m_Camera_Pos_Vec3.x, m_Camera_Pos_Vec3.y, m_Camera_Pos_Vec3.z);
+	
+
 #ifdef RENDER_CUBE
 	// ** m_VBO_Simple_Cube 본문 **
 	// ===============================================
@@ -1492,6 +1498,11 @@ void Renderer::Draw_Simple_Cube()
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, m_Grass_Texture);
 
+	GLuint u_Texture_Height_Map_2 = glGetUniformLocation(shader_ID, "u_Texture_Height_Map_2");
+	glUniform1i(u_Texture_Height_Map_2, 4);
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, m_Height_Map_Texture_2);
+
 
 	int a_Position = glGetAttribLocation(shader_ID, "a_Position");
 
@@ -1524,7 +1535,7 @@ void Renderer::Rendering(const float& elapsed_time)
 	//Draw_Lec4_Particle();
 	//Draw_Lec5_Particle();
 	//Draw_Sin_Particle();
-	//Draw_SandBox();
+	//Draw_FS_SandBox();
 	//Draw_Simple_Texture();
 	//Draw_VS_SandBox();
 	Draw_Simple_Cube();

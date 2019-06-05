@@ -10,8 +10,7 @@ out vec4 FragColor;
 
 const float PI = 3.1416f;
 
-
-void main()
+void Rader()
 {
 	vec2 new_UV = v_Temp.xy - vec2(0.5f, 0.5f);
 
@@ -63,4 +62,28 @@ void main()
 		FragColor = vec4(0.0f);
 	}
 	*/
+}
+
+
+
+void Waves()
+{
+	vec4 new_Color = vec4(0.0f);
+	vec2 new_UV = v_Temp.xy - vec2(0.5f, 0.5f);
+	for (int i = 0; i < 5; ++i)
+	{
+		vec2 new_Point = u_Points[i];
+		vec2 new_Vec = new_Point - new_UV;
+		float point_Distance = length(new_Vec) * 8.0f * PI - u_Time;
+		new_Color += vec4(sin(point_Distance));
+	}
+	FragColor = new_Color;
+}
+
+
+
+void main()
+{
+	Rader();
+	//Waves();
 }
