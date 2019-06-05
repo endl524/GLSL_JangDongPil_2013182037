@@ -236,7 +236,7 @@ public:
 	// Camera
 	void Initialize_Camera();
 	void Camera_Translate(const glm::vec3& weight);
-	void Camera_Rotate(const glm::vec3& rot_axis_xyz);
+	void Camera_Rotate(const glm::vec3& rot_value_xyz);
 	
 
 	// [end] ===================================================

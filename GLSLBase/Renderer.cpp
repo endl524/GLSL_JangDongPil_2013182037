@@ -1549,16 +1549,41 @@ void Renderer::Camera_Translate(const glm::vec3& velocity)
 	m_View_Proj_Mat4 = m_Projection_Mat4 * m_View_Mat4;
 }
 
-void Renderer::Camera_Rotate(const glm::vec3& rot_axis_xyz)
-{
-	glm::vec3 EulerAngles(rot_axis_xyz * PI * 0.001f);
+#define USING_QUAT_TO_MAT4
+void Renderer::Camera_Rotate(const glm::vec3& rot_value_xyz)
+{ 
+	glm::vec3 EulerAngles(rot_value_xyz * PI * 0.001f);
 	glm::quat quat;
+
+#ifdef USING_QUAT_TO_MAT4
 	quat = glm::angleAxis(glm::degrees(EulerAngles.x), m_Camera_Right_Vec3); // 현재 "Camera의 Right 벡터"에 대해 "Camera의 Front 벡터"를 회전.
 	m_Camera_Front_Vec3 = glm::mat4_cast(quat) * glm::vec4(m_Camera_Front_Vec3, 0.0f);
 	quat = glm::angleAxis(glm::degrees(EulerAngles.y), m_Camera_Up_Vec3); // 현재 "Camera의 Up 벡터"에 대해 "Camera의 Front 벡터"를 회전.
 	m_Camera_Front_Vec3 = glm::mat4_cast(quat) * glm::vec4(m_Camera_Front_Vec3, 0.0f);
 	quat = glm::angleAxis(glm::degrees(EulerAngles.z), m_Camera_Front_Vec3); // 현재 "Camera의 Front 벡터"에 대해 "World의 Up 벡터"를 회전.
 	m_World_Up_Vec3 = glm::mat4_cast(quat) * glm::vec4(m_World_Up_Vec3, 0.0f);
+	
+#else
+	glm::quat v, quat_conj;
+	quat = glm::angleAxis(glm::degrees(EulerAngles.x), m_Camera_Right_Vec3);
+	quat_conj = glm::conjugate(quat);
+	v = glm::quat(0.0f, m_Camera_Front_Vec3);
+	v = quat * v * quat_conj;
+	m_Camera_Front_Vec3 = glm::vec3(v.x, v.y, v.z);
+
+	quat = glm::angleAxis(glm::degrees(EulerAngles.y), m_Camera_Up_Vec3);
+	quat_conj = glm::conjugate(quat);
+	v = glm::quat(0.0f, m_Camera_Front_Vec3);
+	v = quat * v * quat_conj;
+	m_Camera_Front_Vec3 = glm::vec3(v.x, v.y, v.z);
+
+	quat = glm::angleAxis(glm::degrees(EulerAngles.z), m_Camera_Front_Vec3);
+	quat_conj = glm::conjugate(quat);
+	v = glm::quat(0.0f, m_World_Up_Vec3);
+	v = quat * v * quat_conj;
+	m_World_Up_Vec3 = glm::vec3(v.x, v.y, v.z);
+	
+#endif
 
 	Camera_Axis_Update();
 

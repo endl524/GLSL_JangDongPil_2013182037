@@ -92,19 +92,19 @@ void Mouse_Drag_Input(int x, int y)
 {
 	if (g_is_Left_Clicked)
 	{
-		glm::vec3 rot_axis_xyz(
+		glm::vec3 rot_value_xyz(
 			(g_WindowSizeY * 0.5f - y) - g_Prev_Cursor_Position_Y,
 			g_Prev_Cursor_Position_X - (x - g_WindowSizeX * 0.5f),
 			0.0f
 		);
-		g_Renderer->Camera_Rotate(rot_axis_xyz * g_Elapsed_Time.count());
+		g_Renderer->Camera_Rotate(rot_value_xyz * g_Elapsed_Time.count());
 		g_Prev_Cursor_Position_X = x - g_WindowSizeX * 0.5f; g_Prev_Cursor_Position_Y = g_WindowSizeY * 0.5f - y;
 	}
 
 	else if (g_is_Right_Clicked)
 	{
-		glm::vec3 rot_axis_xyz( 0.0f, 0.0f, g_Prev_Cursor_Position_X - (x - g_WindowSizeX * 0.5f) );
-		g_Renderer->Camera_Rotate(rot_axis_xyz * g_Elapsed_Time.count());
+		glm::vec3 rot_value_xyz( 0.0f, 0.0f, g_Prev_Cursor_Position_X - (x - g_WindowSizeX * 0.5f) );
+		g_Renderer->Camera_Rotate(rot_value_xyz * g_Elapsed_Time.count());
 		g_Prev_Cursor_Position_X = x - g_WindowSizeX * 0.5f;
 	}
 }
