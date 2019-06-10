@@ -66,6 +66,7 @@ void Wave()
 
 	vec3 new_Pos = a_Position.xyz;
 	new_Pos.z += grey;
+	new_Pos.xy *= 2.0f;
 
 	v_Grey_Scale = (grey + 1.0f) / 2.0f;
 

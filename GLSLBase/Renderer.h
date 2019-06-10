@@ -109,23 +109,20 @@ private:
 	// VBO Variable
 	GLuint m_VBORect = 0;
 	GLuint m_VBORectColor = 0;
-
 	GLuint m_VBO_Particle = 0;
-	GLuint m_Count_of_Particle_Vertice = 0;
-
 	GLuint m_VBO_Sin_Particle = 0;
-	GLuint m_Count_of_Sin_Particle_Vertice = 0;
-
 	GLuint m_VBO_FS_SandBox = 0;
-	
 	GLuint m_VBO_FillAll = 0;
-
 	GLuint m_VBO_Simple_Texture = 0;
-
 	GLuint m_VBO_VS_SandBox = 0;
-	GLuint m_Count_ProxyGeo = 0;
-
 	GLuint m_VBO_Simple_Cube = 0;
+	GLuint m_VBO_Texture_Rect = 0;
+
+
+	// VBO Vertices Count
+	GLuint m_Count_of_Particle_Vertice = 0;
+	GLuint m_Count_of_Sin_Particle_Vertice = 0;
+	GLuint m_Count_ProxyGeo = 0;
 
 
 	// FBO Variable
@@ -138,11 +135,8 @@ private:
 	GLuint m_Particle_Texture_1 = 0;
 	GLuint m_Particle_Texture_2 = 0;
 	GLuint m_Particle_Texture_3 = 0;
-	
 	GLuint m_Check_Texture_ID = 0;
-	
 	GLuint m_Sample_RGB_Texture = 0;
-
 	GLuint m_Full_Moon_Texture = 0;
 	GLuint m_Wooden_Box_Texture = 0;
 	GLuint m_Number_Texture = 0;
@@ -154,6 +148,7 @@ private:
 	GLuint m_Snow_Texture = 0;
 	GLuint m_Grass_Texture = 0;
 	GLuint m_Height_Map_Texture_2 = 0;
+
 
 	// Sprites
 	GLuint m_Sans_Sprite = 0;
@@ -167,7 +162,6 @@ private:
 	glm::mat4 m_View_Mat4;
 	glm::mat4 m_Projection_Mat4;
 	glm::mat4 m_View_Proj_Mat4;
-
 	glm::vec3 m_World_Up_Vec3;
 	glm::vec3 m_Camera_Pos_Vec3;
 	glm::vec3 m_Camera_Front_Vec3;
@@ -203,10 +197,11 @@ private:
 	void Create_Simple_Texture_VBO();
 	void Create_VS_SandBox_VBO();
 	void Create_Simple_Cube_VBO();
+	void Create_Texture_Rect_VBO();
 
 
 	// FBO Create
-	GLuint Create_FBO(const int& x, const int& y, GLuint& ret_texture_id);
+	GLuint Create_FBO(const int& x, const int& y, GLuint* ret_texture_id);
 
 
 	// Draw Methods

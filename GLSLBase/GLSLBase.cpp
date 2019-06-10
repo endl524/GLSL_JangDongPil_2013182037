@@ -16,8 +16,8 @@ but WITHOUT ANY WARRANTY.
 
 Renderer *g_Renderer = NULL;
 
-int g_WindowSizeX = 600;
-int g_WindowSizeY = 600;
+int g_WindowSizeX = 800;
+int g_WindowSizeY = 800;
 
 
 // Elapsed Time===================
@@ -145,7 +145,7 @@ int main(int argc, char **argv)
 	// Initialize GL things
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
-	glutInitWindowPosition(300, 200);
+	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(g_WindowSizeX, g_WindowSizeY);
 	glutCreateWindow("GLSL KPU");
 

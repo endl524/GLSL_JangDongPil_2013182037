@@ -76,9 +76,10 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	Create_Simple_Texture_VBO();
 	Create_VS_SandBox_VBO();
 	Create_Simple_Cube_VBO();
+	Create_Texture_Rect_VBO();
 
 	//Create FBO
-	for (int i = 0; i < 4; ++i) m_FBO[i] = Create_FBO(300, 300, m_FBO_Texture[i]);
+	for (int i = 0; i < 4; ++i) m_FBO[i] = Create_FBO(m_WindowSizeX / 2, m_WindowSizeY / 2, &m_FBO_Texture[i]);
 }
 
 void Renderer::Random_Device_Setting()
@@ -793,16 +794,35 @@ void Renderer::Create_Simple_Cube_VBO()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * array_size, cube, GL_STATIC_DRAW);
 }
 
+void Renderer::Create_Texture_Rect_VBO()
+{
+	float size = 0.5f;
+	float texRect[]
+		=
+	{
+		-size, -size, 0.f, 0.f, 0.f, //x, y, z, u, v
+		-size, size, 0.f, 0.f, 1.f,
+		size, size, 0.f, 1.f, 1.f, //Triangle1
+		-size, -size, 0.f, 0.f, 0.f,
+		size, size, 0.f, 1.f, 1.f,
+		size, -size, 0.f, 1.f, 0.f //Triangle2
+	};
+
+	glGenBuffers(1, &m_VBO_Texture_Rect);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_Texture_Rect);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(texRect), texRect, GL_STATIC_DRAW);
+}
+
 
 //=================================================================
 
 
-GLuint Renderer::Create_FBO(const int& size_x, const int& size_y, GLuint& ret_texture_id)
+GLuint Renderer::Create_FBO(const int& size_x, const int& size_y, GLuint* ret_texture_id)
 {
-	// Render Buffer
-	GLuint texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
+	// Gen Render Target
+	GLuint temp_Texture = 0;
+	glGenTextures(1, &temp_Texture);
+	glBindTexture(GL_TEXTURE_2D, temp_Texture);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -810,20 +830,20 @@ GLuint Renderer::Create_FBO(const int& size_x, const int& size_y, GLuint& ret_te
 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size_x, size_y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
-	// Depth Buffer
+	// Depth Buffer (Render Buffer)
 	glGenRenderbuffers(1, &m_DepthBuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, m_DepthBuffer);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, size_x, size_y);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
-	// Attach
-	GLuint temp;
-	glGenFramebuffers(1, &temp);
-	glBindFramebuffer(GL_FRAMEBUFFER, temp);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+	// Attach "Texture and Depth Buffer" to FBO
+	GLuint temp_FBO;
+	glGenFramebuffers(1, &temp_FBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, temp_FBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, temp_Texture, 0);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_DepthBuffer);
 
-	// 
+	// Success Check
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (status != GL_FRAMEBUFFER_COMPLETE)
 	{
@@ -831,11 +851,10 @@ GLuint Renderer::Create_FBO(const int& size_x, const int& size_y, GLuint& ret_te
 		return 0;
 	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0); // 0 으로 초기화
-
-	ret_texture_id = texture; // 텍스쳐 ID 저장
-
-	return temp; // FBO ID 반환
+	// Save and Default Frame Buffer Setting
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Default Frame Buffer로 전환.
+	*ret_texture_id = temp_Texture; // 텍스쳐 ID 저장
+	return temp_FBO; // FBO ID 반환
 }
 
 
@@ -1565,32 +1584,28 @@ void Renderer::Draw_Simple_Cube()
 	// ===============================================
 
 #endif
+
+	glDisable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
 }
 
 void Renderer::Draw_Texture_Rect(const GLuint& texture, const float& x, const float& y, const float& size_x, const float& size_y)
 {
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	// ===============================================
-
 	GLuint shader_ID = m_Texture_Rect_Shader;
 	glUseProgram(shader_ID);
 
 	// ===============================================
 
-	// position
 	GLuint u_Position = glGetUniformLocation(shader_ID, "u_Position");
 	glUniform2f(u_Position, x, y);
 
 	GLuint u_Size = glGetUniformLocation(shader_ID, "u_Size");
 	glUniform2f(u_Size, size_x, size_y);
 
-	// Apply Textures ID
 	GLuint u_Texture = glGetUniformLocation(shader_ID, "u_Texture");
 	glUniform1i(u_Texture, 0);
 
-	// Activate Textures
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -1604,7 +1619,7 @@ void Renderer::Draw_Texture_Rect(const GLuint& texture, const float& x, const fl
 
 	// ===============================================
 
-	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_Simple_Texture);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_Texture_Rect);
 	glVertexAttribPointer(a_Position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
 	glVertexAttribPointer(a_Texture_UV, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (GLvoid*)(sizeof(float) * 3));
 
@@ -1618,36 +1633,52 @@ void Renderer::Draw_Texture_Rect(const GLuint& texture, const float& x, const fl
 
 void Renderer::Test_FBO()
 {
+	// 작업 순서 설명.
+	// 1. 사용할 Frame Buffer 바인드
+	// 2. 뷰포트 위치 및 크기 지정.
+	// 3. 프레임버퍼 클리어 (Color Buffer, Depth Buffer)
+	// 4. 렌더링! (Texture 형태로 저장)
+	// 5. ** 1~4 까지의 단계 까지의 작업은 '독립적인 프레임 버퍼'에 렌더링 하여
+	//		텍스쳐 형태로 저장해놓는 것이다.
+	//		따라서 최종적으로 화면에 그려주기 위한 'Default Frame Buffer'를 바인드 한 다음,
+	//		만들어 놓은 텍스쳐를 렌더링 하는 방식으로 사용해야한다.
+	
+	int window_half_size_X = m_WindowSizeX / 2;
+	int window_half_size_Y = m_WindowSizeY / 2;
+
 	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[0]);
-	glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
-	glClearDepth(1.0f);
-	glViewport(0, 0, 300, 300);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, window_half_size_X, window_half_size_Y);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	Fill_All(0.2f);
 	Draw_Simple_Cube();
-	Draw_Texture_Rect(m_FBO_Texture[0], -0.5f, -0.5f, 1.0f, 1.0f);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[1]);
-	glClearColor(0.0f, 1.0f, 0.0f, 0.0f);
-	glClearDepth(1.0f);
-	glViewport(0, 0, 300, 300);
+	glViewport(0, 0, window_half_size_X, window_half_size_Y);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(0.0f, 0.5f, 0.0f, 1.0f);
+	glClearDepth(1.0f);
 	Draw_Simple_Texture();
-	Draw_Texture_Rect(m_FBO_Texture[1], 0.5f, -0.5f, 1.0f, 1.0f);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[2]);
-	glClearColor(0.0f, 0.0f, 1.0f, 0.0f);
-	glClearDepth(1.0f);
-	glViewport(0, 0, 300, 300);
+	glViewport(0, 0, window_half_size_X, window_half_size_Y);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(0.0f, 0.0f, 0.5f, 1.0f);
+	glClearDepth(1.0f);
 	Draw_VS_SandBox();
-	Draw_Texture_Rect(m_FBO_Texture[2], -0.5f, 0.5f, 1.0f, 1.0f);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[3]);
-	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
-	glClearDepth(1.0f);
-	glViewport(0, 0, 300, 300);
+	glViewport(0, 0, window_half_size_X, window_half_size_Y);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	glClearDepth(1.0f);
 	Draw_FS_SandBox();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0); // Default Frame Buffer로 전환.
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glViewport(0, 0, m_WindowSizeX, m_WindowSizeY);
+	Draw_Texture_Rect(m_FBO_Texture[0], -0.5f, -0.5f, 1.0f, 1.0f);
+	Draw_Texture_Rect(m_FBO_Texture[1], 0.5f, -0.5f, 1.0f, 1.0f);
+	Draw_Texture_Rect(m_FBO_Texture[2], -0.5f, 0.5f, 1.0f, 1.0f);
 	Draw_Texture_Rect(m_FBO_Texture[3], 0.5f, 0.5f, 1.0f, 1.0f);
 }
 
@@ -1659,9 +1690,9 @@ void Renderer::Rendering(const float& elapsed_time)
 	
 	// ** Scene Clearing **
 	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
-	//glClear(GL_DEPTH_BUFFER_BIT); // Depth Test가 성공할 때 마다 Depth Buffer는 계속 쌓이게 된다. 그러니 "꼭 지워줄것."
-	//Fill_All(0.2f);
+	//glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_DEPTH_BUFFER_BIT); // Depth Test가 성공할 때 마다 Depth Buffer는 계속 쌓이게 된다. 그러니 "꼭 지워줄것."
+	Fill_All(0.2f);
 	
 
 	// ** Render **
