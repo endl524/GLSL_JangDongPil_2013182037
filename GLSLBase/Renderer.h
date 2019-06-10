@@ -90,6 +90,7 @@ private:
 	GLuint m_Simple_Texture_Shader = 0;
 	GLuint m_VS_SandBox_Shader = 0;
 	GLuint m_Simple_Cube_Shader = 0;
+	GLuint m_Texture_Rect_Shader = 0;
 
 
 	// Random Engine
@@ -127,6 +128,12 @@ private:
 	GLuint m_VBO_Simple_Cube = 0;
 
 
+	// FBO Variable
+	GLuint m_DepthBuffer = 0; // 재활용 가능.
+	GLuint m_FBO_Texture[4] = { 0, };
+	GLuint m_FBO[4] = { 0, };
+	
+
 	// Textures
 	GLuint m_Particle_Texture_1 = 0;
 	GLuint m_Particle_Texture_2 = 0;
@@ -140,6 +147,7 @@ private:
 	GLuint m_Wooden_Box_Texture = 0;
 	GLuint m_Number_Texture = 0;
 	GLuint m_Number_Texture_2 = 0;
+
 
 	// Height Map
 	GLuint m_Height_Map_Texture = 0;
@@ -194,7 +202,11 @@ private:
 	void Create_FillAll_VBO();
 	void Create_Simple_Texture_VBO();
 	void Create_VS_SandBox_VBO();
-	void Creat_Simple_Cube_VBO();
+	void Create_Simple_Cube_VBO();
+
+
+	// FBO Create
+	GLuint Create_FBO(const int& x, const int& y, GLuint& ret_texture_id);
 
 
 	// Draw Methods
@@ -207,6 +219,11 @@ private:
 	void Draw_Simple_Texture();
 	void Draw_VS_SandBox();
 	void Draw_Simple_Cube();
+
+
+	// Draw FBO
+	void Draw_Texture_Rect(const GLuint& texture, const float& x, const float& y, const float& size_x, const float& size_y);
+	void Test_FBO();
 
 
 	// Camera

@@ -24,7 +24,8 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_FillAll_Shader = CompileShaders("./Shaders/FillAll.vs", "./Shaders/FillAll.fs");
 	m_Simple_Texture_Shader = CompileShaders("./Shaders/SimpleTexture.vs", "./Shaders/SimpleTexture.fs");
 	m_VS_SandBox_Shader = CompileShaders("./Shaders/VSSandBox.vs", "./Shaders/VSSandBox.fs");
-	m_Simple_Cube_Shader= CompileShaders("./Shaders/SimpleCube.vs", "./Shaders/SimpleCube.fs");
+	m_Simple_Cube_Shader = CompileShaders("./Shaders/SimpleCube.vs", "./Shaders/SimpleCube.fs");
+	m_Texture_Rect_Shader = CompileShaders("./Shaders/TextureRect.vs", "./Shaders/TextureRect.fs");
 
 	// Load Textures
 	m_Particle_Texture_1 = CreatePngTexture("./Resources/Textures/Test_Cat.png");
@@ -74,7 +75,10 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	Create_FillAll_VBO();
 	Create_Simple_Texture_VBO();
 	Create_VS_SandBox_VBO();
-	Creat_Simple_Cube_VBO();
+	Create_Simple_Cube_VBO();
+
+	//Create FBO
+	for (int i = 0; i < 4; ++i) m_FBO[i] = Create_FBO(300, 300, m_FBO_Texture[i]);
 }
 
 void Renderer::Random_Device_Setting()
@@ -727,13 +731,13 @@ void Renderer::Create_VS_SandBox_VBO()
 	delete[] vertices;
 }
 
-void Renderer::Creat_Simple_Cube_VBO()
+void Renderer::Create_Simple_Cube_VBO()
 {
 	float temp = 0.5f;
 	int attrib_count = 10;
 	int vertices_count = 36;
 	int array_size = attrib_count * vertices_count;
-	
+
 	float cube[] = {
 	-temp, -temp, -temp, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, //x, y, z, nx, ny, nz, r, g, b, a
 	-temp, -temp, temp, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
@@ -783,10 +787,55 @@ void Renderer::Creat_Simple_Cube_VBO()
 	-temp, temp, temp, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
 	temp, -temp, temp, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
 	};
-	
+
 	glGenBuffers(1, &m_VBO_Simple_Cube);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_Simple_Cube);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * array_size, cube, GL_STATIC_DRAW);
+}
+
+
+//=================================================================
+
+
+GLuint Renderer::Create_FBO(const int& size_x, const int& size_y, GLuint& ret_texture_id)
+{
+	// Render Buffer
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size_x, size_y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+	// Depth Buffer
+	glGenRenderbuffers(1, &m_DepthBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, m_DepthBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, size_x, size_y);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	// Attach
+	GLuint temp;
+	glGenFramebuffers(1, &temp);
+	glBindFramebuffer(GL_FRAMEBUFFER, temp);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_DepthBuffer);
+
+	// 
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (status != GL_FRAMEBUFFER_COMPLETE)
+	{
+		cout << "Error While Attach FBO." << endl;
+		return 0;
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0); // 0 으로 초기화
+
+	ret_texture_id = texture; // 텍스쳐 ID 저장
+
+	return temp; // FBO ID 반환
 }
 
 
@@ -1419,7 +1468,6 @@ void Renderer::Draw_Simple_Cube()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
-	glClear(GL_DEPTH_BUFFER_BIT); // Depth Test가 성공할 때 마다 Depth Buffer는 계속 쌓이게 된다. 그러니 "꼭 지워줄것."
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 
@@ -1519,16 +1567,102 @@ void Renderer::Draw_Simple_Cube()
 #endif
 }
 
+void Renderer::Draw_Texture_Rect(const GLuint& texture, const float& x, const float& y, const float& size_x, const float& size_y)
+{
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// ===============================================
+
+	GLuint shader_ID = m_Texture_Rect_Shader;
+	glUseProgram(shader_ID);
+
+	// ===============================================
+
+	// position
+	GLuint u_Position = glGetUniformLocation(shader_ID, "u_Position");
+	glUniform2f(u_Position, x, y);
+
+	GLuint u_Size = glGetUniformLocation(shader_ID, "u_Size");
+	glUniform2f(u_Size, size_x, size_y);
+
+	// Apply Textures ID
+	GLuint u_Texture = glGetUniformLocation(shader_ID, "u_Texture");
+	glUniform1i(u_Texture, 0);
+
+	// Activate Textures
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	// ===============================================
+
+	GLuint a_Position = glGetAttribLocation(shader_ID, "a_Position");
+	GLuint a_Texture_UV = glGetAttribLocation(shader_ID, "a_Texture_UV");
+
+	glEnableVertexAttribArray(a_Position);
+	glEnableVertexAttribArray(a_Texture_UV);
+
+	// ===============================================
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_Simple_Texture);
+	glVertexAttribPointer(a_Position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
+	glVertexAttribPointer(a_Texture_UV, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (GLvoid*)(sizeof(float) * 3));
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	// ===============================================
+
+	glDisableVertexAttribArray(a_Position);
+	glDisableVertexAttribArray(a_Texture_UV);
+}
+
+void Renderer::Test_FBO()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[0]);
+	glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+	glClearDepth(1.0f);
+	glViewport(0, 0, 300, 300);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	Draw_Simple_Cube();
+	Draw_Texture_Rect(m_FBO_Texture[0], -0.5f, -0.5f, 1.0f, 1.0f);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[1]);
+	glClearColor(0.0f, 1.0f, 0.0f, 0.0f);
+	glClearDepth(1.0f);
+	glViewport(0, 0, 300, 300);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	Draw_Simple_Texture();
+	Draw_Texture_Rect(m_FBO_Texture[1], 0.5f, -0.5f, 1.0f, 1.0f);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[2]);
+	glClearColor(0.0f, 0.0f, 1.0f, 0.0f);
+	glClearDepth(1.0f);
+	glViewport(0, 0, 300, 300);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	Draw_VS_SandBox();
+	Draw_Texture_Rect(m_FBO_Texture[2], -0.5f, 0.5f, 1.0f, 1.0f);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[3]);
+	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+	glClearDepth(1.0f);
+	glViewport(0, 0, 300, 300);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	Draw_FS_SandBox();
+	Draw_Texture_Rect(m_FBO_Texture[3], 0.5f, 0.5f, 1.0f, 1.0f);
+}
 
 void Renderer::Rendering(const float& elapsed_time)
 {
 	// ** Time Update **
 	m_Time += elapsed_time;
 
+	
 	// ** Scene Clearing **
 	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glClearColor(0.0f, 0.0f, 0.0f, 0.2f);
-	Fill_All(0.2f);
+	//glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+	//glClear(GL_DEPTH_BUFFER_BIT); // Depth Test가 성공할 때 마다 Depth Buffer는 계속 쌓이게 된다. 그러니 "꼭 지워줄것."
+	//Fill_All(0.2f);
+	
 
 	// ** Render **
 	//Test();
@@ -1538,7 +1672,8 @@ void Renderer::Rendering(const float& elapsed_time)
 	//Draw_FS_SandBox();
 	//Draw_Simple_Texture();
 	//Draw_VS_SandBox();
-	Draw_Simple_Cube();
+	//Draw_Simple_Cube();
+	Test_FBO();
 }
 
 
