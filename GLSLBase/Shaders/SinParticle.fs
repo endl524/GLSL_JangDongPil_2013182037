@@ -16,8 +16,8 @@ void main()
 	
 	if (distance_of_Curr_Fragment_from_Original_Pos < v_Radius)
 	{
-		new_Color = v_Color;
-		new_Color.a = pow(1 - distance_of_Curr_Fragment_from_Original_Pos / v_Radius, 7);
+		new_Color.rgb = v_Color.rgb;
+		new_Color.a = pow(1 - distance_of_Curr_Fragment_from_Original_Pos / v_Radius, 2);
 	}
 	else
 	{
@@ -27,8 +27,8 @@ void main()
 	FragColor = new_Color;
 	*/
 
-	vec2 new_Pos;
-	new_Pos.x = 0.5f + v_Original_Pos.x;
-	new_Pos.y = 0.5f - v_Original_Pos.y;
-	FragColor = texture(u_Texture, new_Pos / v_Radius * 0.5f);
+	vec2 new_Pos = v_Original_Pos + vec2(0.5f, -0.5f);
+	FragColor = texture(u_Texture, new_Pos / v_Radius * 0.5f) * 50.0f; // texture sampling 후, HDR Color로 만든다.
+	//FragColor = vec4(5.0f); // HDR Color
+	FragColor.a = 1.0f;
 }

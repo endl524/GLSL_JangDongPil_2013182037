@@ -19,7 +19,7 @@
 
 // [Initial] ============================
 #define PARTICLE_NUMS 100
-#define PARTICLE_HALF_SIZE 0.1f
+#define PARTICLE_HALF_SIZE 0.01f
 #define SANDBOX_HALF_SIZE 1.0f
 #define FILLALL_RECT_HALF_SIZE 1.0f
 #define SIMPLE_TEXTURE_HALF_SIZE 0.5f
@@ -91,6 +91,7 @@ private:
 	GLuint m_VS_SandBox_Shader = 0;
 	GLuint m_Simple_Cube_Shader = 0;
 	GLuint m_Texture_Rect_Shader = 0;
+	GLuint m_HDR_Texture_Rect_Shader = 0;
 
 
 	// Random Engine
@@ -127,8 +128,8 @@ private:
 
 	// FBO Variable
 	GLuint m_DepthBuffer = 0; // 재활용 가능.
-	GLuint m_FBO_Texture[4] = { 0, };
-	GLuint m_FBO[4] = { 0, };
+	GLuint m_FBO_Texture[5] = { 0, };
+	GLuint m_FBO[5] = { 0, };
 	
 
 	// Textures
@@ -201,7 +202,7 @@ private:
 
 
 	// FBO Create
-	GLuint Create_FBO(const int& x, const int& y, GLuint* ret_texture_id);
+	GLuint Create_FBO(const int& x, const int& y, GLuint* ret_texture_id, const bool& is_HDR);
 
 
 	// Draw Methods
@@ -218,8 +219,9 @@ private:
 
 	// Draw FBO
 	void Draw_Texture_Rect(const GLuint& texture, const float& x, const float& y, const float& size_x, const float& size_y);
+	void Draw_HDR_Texture_Rect(const GLuint& texture, const float& x, const float& y, const float& size_x, const float& size_y);
 	void Test_FBO();
-
+	void Bloom_FBO();
 
 	// Camera
 	void Camera_Axis_Update();

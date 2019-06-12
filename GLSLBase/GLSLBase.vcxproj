@@ -177,6 +177,8 @@
     <None Include="Shaders\FillAll.vs" />
     <None Include="Shaders\FSSandBox.fs" />
     <None Include="Shaders\FSSandBox.vs" />
+    <None Include="Shaders\HDRTextureRect.fs" />
+    <None Include="Shaders\HDRTextureRect.vs" />
     <None Include="Shaders\SimpleCube.fs" />
     <None Include="Shaders\SimpleCube.vs" />
     <None Include="Shaders\SimpleTexture.fs" />

@@ -26,6 +26,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_VS_SandBox_Shader = CompileShaders("./Shaders/VSSandBox.vs", "./Shaders/VSSandBox.fs");
 	m_Simple_Cube_Shader = CompileShaders("./Shaders/SimpleCube.vs", "./Shaders/SimpleCube.fs");
 	m_Texture_Rect_Shader = CompileShaders("./Shaders/TextureRect.vs", "./Shaders/TextureRect.fs");
+	m_HDR_Texture_Rect_Shader = CompileShaders("./Shaders/HDRTextureRect.vs", "./Shaders/HDRTextureRect.fs");
 
 	// Load Textures
 	m_Particle_Texture_1 = CreatePngTexture("./Resources/Textures/Test_Cat.png");
@@ -79,7 +80,9 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	Create_Texture_Rect_VBO();
 
 	//Create FBO
-	for (int i = 0; i < 4; ++i) m_FBO[i] = Create_FBO(m_WindowSizeX / 2, m_WindowSizeY / 2, &m_FBO_Texture[i]);
+	for (int i = 0; i < 3; ++i) m_FBO[i] = Create_FBO(m_WindowSizeX / 2, m_WindowSizeY / 2, &m_FBO_Texture[i], false);
+	m_FBO[3] = Create_FBO(m_WindowSizeX, m_WindowSizeY, &m_FBO_Texture[3], true); // Bloom FBO
+	m_FBO[4] = Create_FBO(m_WindowSizeX, m_WindowSizeY, &m_FBO_Texture[4], true); // Bloom FBO
 }
 
 void Renderer::Random_Device_Setting()
@@ -814,27 +817,33 @@ void Renderer::Create_Texture_Rect_VBO()
 }
 
 
+
+
 //=================================================================
 
 
-GLuint Renderer::Create_FBO(const int& size_x, const int& size_y, GLuint* ret_texture_id)
+GLuint Renderer::Create_FBO(const int& size_x, const int& size_y, GLuint* ret_texture_id, const bool& is_HDR)
 {
 	// Gen Render Target
 	GLuint temp_Texture = 0;
 	glGenTextures(1, &temp_Texture);
 	glBindTexture(GL_TEXTURE_2D, temp_Texture);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size_x, size_y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+	if (is_HDR) glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, size_x, size_y, 0, GL_RGBA, GL_FLOAT, 0);
+	else glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size_x, size_y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
 
 	// Depth Buffer (Render Buffer)
 	glGenRenderbuffers(1, &m_DepthBuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, m_DepthBuffer);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, size_x, size_y);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
 
 	// Attach "Texture and Depth Buffer" to FBO
 	GLuint temp_FBO;
@@ -843,6 +852,7 @@ GLuint Renderer::Create_FBO(const int& size_x, const int& size_y, GLuint* ret_te
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, temp_Texture, 0);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_DepthBuffer);
 
+
 	// Success Check
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (status != GL_FRAMEBUFFER_COMPLETE)
@@ -850,6 +860,7 @@ GLuint Renderer::Create_FBO(const int& size_x, const int& size_y, GLuint* ret_te
 		cout << "Error While Attach FBO." << endl;
 		return 0;
 	}
+
 
 	// Save and Default Frame Buffer Setting
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Default Frame Buffer로 전환.
@@ -1631,6 +1642,53 @@ void Renderer::Draw_Texture_Rect(const GLuint& texture, const float& x, const fl
 	glDisableVertexAttribArray(a_Texture_UV);
 }
 
+void Renderer::Draw_HDR_Texture_Rect(const GLuint& texture, const float& x, const float& y, const float& size_x, const float& size_y)
+{
+	GLuint shader_ID = m_HDR_Texture_Rect_Shader;
+	glUseProgram(shader_ID);
+
+	// ===============================================
+
+	GLuint u_Position = glGetUniformLocation(shader_ID, "u_Position");
+	glUniform2f(u_Position, x, y);
+
+	GLuint u_Size = glGetUniformLocation(shader_ID, "u_Size");
+	glUniform2f(u_Size, size_x, size_y);
+
+	GLuint u_Texture = glGetUniformLocation(shader_ID, "u_Texture");
+	glUniform1i(u_Texture, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	GLuint u_Blur_Size = glGetUniformLocation(shader_ID, "u_Blur_Size");
+	glUniform1f(u_Blur_Size, 30.0f);
+
+	GLuint u_Texel_Size = glGetUniformLocation(shader_ID, "u_Texel_Size");
+	glUniform2f(u_Texel_Size, 1.0f / m_WindowSizeX, 1.0f / m_WindowSizeY);
+
+	// ===============================================
+
+	GLuint a_Position = glGetAttribLocation(shader_ID, "a_Position");
+	GLuint a_Texture_UV = glGetAttribLocation(shader_ID, "a_Texture_UV");
+
+	glEnableVertexAttribArray(a_Position);
+	glEnableVertexAttribArray(a_Texture_UV);
+
+	// ===============================================
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBO_Texture_Rect);
+	glVertexAttribPointer(a_Position, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
+	glVertexAttribPointer(a_Texture_UV, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (GLvoid*)(sizeof(float) * 3));
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	// ===============================================
+
+	glDisableVertexAttribArray(a_Position);
+	glDisableVertexAttribArray(a_Texture_UV);
+}
+
+
 void Renderer::Test_FBO()
 {
 	// 작업 순서 설명.
@@ -1657,7 +1715,7 @@ void Renderer::Test_FBO()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0f, 0.5f, 0.0f, 1.0f);
 	glClearDepth(1.0f);
-	Draw_Simple_Texture();
+	Create_Simple_Texture_VBO();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[2]);
 	glViewport(0, 0, window_half_size_X, window_half_size_Y);
@@ -1673,6 +1731,7 @@ void Renderer::Test_FBO()
 	glClearDepth(1.0f);
 	Draw_FS_SandBox();
 
+	// Draw Each FrameBuffer's Texture
 	glBindFramebuffer(GL_FRAMEBUFFER, 0); // Default Frame Buffer로 전환.
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glViewport(0, 0, m_WindowSizeX, m_WindowSizeY);
@@ -1680,6 +1739,24 @@ void Renderer::Test_FBO()
 	Draw_Texture_Rect(m_FBO_Texture[1], 0.5f, -0.5f, 1.0f, 1.0f);
 	Draw_Texture_Rect(m_FBO_Texture[2], -0.5f, 0.5f, 1.0f, 1.0f);
 	Draw_Texture_Rect(m_FBO_Texture[3], 0.5f, 0.5f, 1.0f, 1.0f);
+}
+
+void Renderer::Bloom_FBO()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[4]);
+	glViewport(0, 0, m_WindowSizeX, m_WindowSizeY);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	Fill_All(0.2f);
+	glClearDepth(1.0f);
+	Draw_Simple_Cube();
+	Draw_Sin_Particle();
+	
+
+	// Draw Each FrameBuffer's Texture
+	glBindFramebuffer(GL_FRAMEBUFFER, 0); // Default Frame Buffer로 전환.
+	glViewport(0, 0, m_WindowSizeX, m_WindowSizeY);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	Draw_HDR_Texture_Rect(m_FBO_Texture[4], 0.0f, 0.0f, 2.0f, 2.0f);
 }
 
 void Renderer::Rendering(const float& elapsed_time)
@@ -1704,7 +1781,8 @@ void Renderer::Rendering(const float& elapsed_time)
 	//Draw_Simple_Texture();
 	//Draw_VS_SandBox();
 	//Draw_Simple_Cube();
-	Test_FBO();
+	//Test_FBO();
+	Bloom_FBO();
 }
 
 
