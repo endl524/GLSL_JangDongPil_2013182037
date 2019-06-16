@@ -12,10 +12,10 @@ void Bloom()
 {
 	// Average Blur
 	float size = u_Blur_Size / 2.0f;
-	vec2 x_Dir = vec2(1.0f, 0.0f);
-	vec2 y_Dir = vec2(0.0f, 1.0f);
+	vec2 x_Dir = vec2(1.0f, 0.0f); // 'x'의 판별 진행 '정방향'
+	vec2 y_Dir = vec2(0.0f, 1.0f); // 'y'의 판별 진행 '정방향'
 	vec3 new_Color = vec3(0.0f, 0.0f, 0.0f);
-	float count = 0.0f;
+	float count = 0.0f; // 몇번 수행했는지 count. 가중치로 사용.
 	float max_Distance = length(size * x_Dir * u_Texel_Size);
 
 	for (float x = -size; x < size; x += 1.0f)
@@ -41,7 +41,8 @@ void Bloom()
 			count += 0.1f;
 		}
 	}
-
+    
+    // 원래 픽셀값과 새로 샘플링한 색상(Blooming Color)을 더한다.
 	FragColor = vec4((new_Color.xyz / count) + texture(u_Texture, v_Texture_UV).rgb, 1.0f);
 }
 

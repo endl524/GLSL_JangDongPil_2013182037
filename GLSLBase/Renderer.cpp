@@ -80,8 +80,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	Create_Texture_Rect_VBO();
 
 	//Create FBO
-	for (int i = 0; i < 3; ++i) m_FBO[i] = Create_FBO(m_WindowSizeX / 2, m_WindowSizeY / 2, &m_FBO_Texture[i], false);
-	m_FBO[3] = Create_FBO(m_WindowSizeX, m_WindowSizeY, &m_FBO_Texture[3], true); // Bloom FBO
+	for (int i = 0; i < 4; ++i) m_FBO[i] = Create_FBO(m_WindowSizeX / 2, m_WindowSizeY / 2, &m_FBO_Texture[i], false);
 	m_FBO[4] = Create_FBO(m_WindowSizeX, m_WindowSizeY, &m_FBO_Texture[4], true); // Bloom FBO
 }
 
@@ -822,9 +821,17 @@ void Renderer::Create_Texture_Rect_VBO()
 //=================================================================
 
 
+// Off-Screen Buffer를 만든다!
+// 보통, 화면에 그려야할 모든 오브젝트가 그려진 후에 처리해야 하는 "그림자"
+// 같은 것들을 여기에 따로 그려서 저장해놓고, 나중에 메인 프레임 버퍼에 덮어서 그린다.
 GLuint Renderer::Create_FBO(const int& size_x, const int& size_y, GLuint* ret_texture_id, const bool& is_HDR)
 {
-	// Gen Render Target
+	// Frame Buffer Object 자체는 껍데기이므로 Color Buffer와 Depth Buffer를
+	// 따로 생성해서 붙여줘야 한다. 
+
+	// "Gen Render Target"
+	// 렌더링 한 결과를 텍스쳐 형태로 저장하기 때문에,
+	// 빈 텍스쳐를 한장 가지고 있어야 한다.
 	GLuint temp_Texture = 0;
 	glGenTextures(1, &temp_Texture);
 	glBindTexture(GL_TEXTURE_2D, temp_Texture);
@@ -834,15 +841,21 @@ GLuint Renderer::Create_FBO(const int& size_x, const int& size_y, GLuint* ret_te
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
 
+	// HDR Texture / SDR Texture
 	if (is_HDR) glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, size_x, size_y, 0, GL_RGBA, GL_FLOAT, 0);
 	else glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size_x, size_y, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
 
-	// Depth Buffer (Render Buffer)
+
+	// "Gen Depth Buffer" (Render Buffer)
+	// 사실, Depth Buffer는 따로 만들어서 붙여주지 않아도
+	// '기본 Depth Buffer'를 기반으로 동작한다.
+	// 허나, 기본 Depth Buffer를 '공유'한다는 것은 '다른 Frame Buffer'들에도 영향을 크게 미치므로,
+	// 따로 만들어서 사용하는것이 안전하다.
 	glGenRenderbuffers(1, &m_DepthBuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, m_DepthBuffer);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, size_x, size_y);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	
 
 
 	// Attach "Texture and Depth Buffer" to FBO
@@ -851,6 +864,7 @@ GLuint Renderer::Create_FBO(const int& size_x, const int& size_y, GLuint* ret_te
 	glBindFramebuffer(GL_FRAMEBUFFER, temp_FBO);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, temp_Texture, 0);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_DepthBuffer);
+
 
 
 	// Success Check
@@ -862,10 +876,14 @@ GLuint Renderer::Create_FBO(const int& size_x, const int& size_y, GLuint* ret_te
 	}
 
 
-	// Save and Default Frame Buffer Setting
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Default Frame Buffer로 전환.
-	*ret_texture_id = temp_Texture; // 텍스쳐 ID 저장
-	return temp_FBO; // FBO ID 반환
+
+	// Save and initialize.
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);  // 현재의 Frame Buffer를 "Main Frame Buffer"로 전환.
+	glBindRenderbuffer(GL_RENDERBUFFER, 0); // 현재의 Render Buffer를 "Main Render Buffer"로 전환.
+
+	*ret_texture_id = temp_Texture; // 생성한 Color Buffer의 ID 저장.
+
+	return temp_FBO; // 완성된 FBO ID 반환.
 }
 
 
@@ -1253,6 +1271,8 @@ void Renderer::Draw_Sin_Particle()
 	glDisableVertexAttribArray(a_Ratio_and_Amplitude);
 	glDisableVertexAttribArray(a_Value);
 	glDisableVertexAttribArray(a_Color);
+
+	glDisable(GL_BLEND);
 }
 
 void Renderer::Draw_FS_SandBox()
@@ -1300,6 +1320,8 @@ void Renderer::Draw_FS_SandBox()
 	glDisableVertexAttribArray(a_Position);
 	glDisableVertexAttribArray(a_Color);
 	glDisableVertexAttribArray(a_UV);
+
+	glDisable(GL_BLEND);
 }
 
 void Renderer::Fill_All(const float& alpha)
@@ -1327,6 +1349,8 @@ void Renderer::Fill_All(const float& alpha)
 	// ===============================================
 
 	glDisableVertexAttribArray(a_Position);
+
+	glDisable(GL_BLEND);
 }
 
 void Renderer::Draw_Simple_Texture()
@@ -1451,6 +1475,8 @@ void Renderer::Draw_Simple_Texture()
 
 	glDisableVertexAttribArray(a_Position);
 	glDisableVertexAttribArray(a_Texture_UV);
+
+	glDisable(GL_BLEND);
 }
 
 void Renderer::Draw_VS_SandBox()
@@ -1490,6 +1516,8 @@ void Renderer::Draw_VS_SandBox()
 	// ===============================================
 
 	glDisableVertexAttribArray(a_Position);
+
+	glDisable(GL_BLEND);
 }
 
 //#define RENDER_CUBE
@@ -1688,12 +1716,11 @@ void Renderer::Draw_HDR_Texture_Rect(const GLuint& texture, const float& x, cons
 	glDisableVertexAttribArray(a_Texture_UV);
 }
 
-
 void Renderer::Test_FBO()
 {
 	// 작업 순서 설명.
 	// 1. 사용할 Frame Buffer 바인드
-	// 2. 뷰포트 위치 및 크기 지정.
+	// 2. 뷰포트 위치 및 크기 지정. (안해주면 Default 크기로 적용된다..)
 	// 3. 프레임버퍼 클리어 (Color Buffer, Depth Buffer)
 	// 4. 렌더링! (Texture 형태로 저장)
 	// 5. ** 1~4 까지의 단계 까지의 작업은 '독립적인 프레임 버퍼'에 렌더링 하여
@@ -1706,57 +1733,101 @@ void Renderer::Test_FBO()
 
 	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[0]);
 	glViewport(0, 0, window_half_size_X, window_half_size_Y);
-	glClear(GL_DEPTH_BUFFER_BIT);
 	Fill_All(0.2f);
+	glClear(GL_DEPTH_BUFFER_BIT);
 	Draw_Simple_Cube();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[1]);
 	glViewport(0, 0, window_half_size_X, window_half_size_Y);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.0f, 0.5f, 0.0f, 1.0f);
+	glClearColor(0.2f, 0.5f, 0.2f, 1.0f);
 	glClearDepth(1.0f);
-	Create_Simple_Texture_VBO();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	Draw_Sin_Particle();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[2]);
 	glViewport(0, 0, window_half_size_X, window_half_size_Y);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.0f, 0.0f, 0.5f, 1.0f);
+	glClearColor(0.2f, 0.2f, 0.5f, 1.0f);
 	glClearDepth(1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	Draw_VS_SandBox();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[3]);
 	glViewport(0, 0, window_half_size_X, window_half_size_Y);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	glClearColor(0.5f, 0.2f, 0.2f, 1.0f);
 	glClearDepth(1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	Draw_FS_SandBox();
 
 	// Draw Each FrameBuffer's Texture
 	glBindFramebuffer(GL_FRAMEBUFFER, 0); // Default Frame Buffer로 전환.
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glViewport(0, 0, m_WindowSizeX, m_WindowSizeY);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	Draw_Texture_Rect(m_FBO_Texture[0], -0.5f, -0.5f, 1.0f, 1.0f);
 	Draw_Texture_Rect(m_FBO_Texture[1], 0.5f, -0.5f, 1.0f, 1.0f);
 	Draw_Texture_Rect(m_FBO_Texture[2], -0.5f, 0.5f, 1.0f, 1.0f);
 	Draw_Texture_Rect(m_FBO_Texture[3], 0.5f, 0.5f, 1.0f, 1.0f);
 }
 
+//#define RENDER_4_KIND
 void Renderer::Bloom_FBO()
 {
+#ifdef RENDER_4_KIND
+
+	// FBO 하나를 4등분 해서 각기 다른 4가지 렌더링하기.
+	int window_half_size_X = m_WindowSizeX / 2;
+	int window_half_size_Y = m_WindowSizeY / 2;
+
+	glEnable(GL_SCISSOR_TEST); // glClear를 부분적으로 수행하기 위해 Scissor Test 사용.
+
 	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[4]);
-	glViewport(0, 0, m_WindowSizeX, m_WindowSizeY);
-	glClear(GL_DEPTH_BUFFER_BIT);
-	Fill_All(0.2f);
-	glClearDepth(1.0f);
-	Draw_Simple_Cube();
+	glViewport(0, window_half_size_Y, window_half_size_X, window_half_size_Y);
+	glScissor(0, window_half_size_Y, window_half_size_X, window_half_size_Y);
+	glClearColor(0.5f, 0.2f, 0.2f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	Draw_Sin_Particle();
 	
+	glViewport(window_half_size_X, window_half_size_Y, window_half_size_X, window_half_size_Y);
+	glScissor(window_half_size_X, window_half_size_Y, window_half_size_X, window_half_size_Y);
+	glClearColor(0.2f, 0.5f, 0.2f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	Draw_Sin_Particle();
+
+	glViewport(0, 0, window_half_size_X, window_half_size_Y);
+	glScissor(0, 0, window_half_size_X, window_half_size_Y);
+	glClearColor(0.2f, 0.2f, 0.5f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	Draw_Sin_Particle();
+
+	glViewport(window_half_size_X, 0, window_half_size_X, window_half_size_Y);
+	glScissor(window_half_size_X, 0, window_half_size_X, window_half_size_Y);
+	glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	Draw_Sin_Particle();
+
+	glDisable(GL_SCISSOR_TEST);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, m_WindowSizeX, m_WindowSizeY);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	Draw_HDR_Texture_Rect(m_FBO_Texture[4], 0.0f, 0.0f, 2.0f, 2.0f);
+
+#else
+
+	// ★ FBO 렌더링 ★
+	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO[4]);
+	glViewport(0, 0, m_WindowSizeX, m_WindowSizeY);
+	Fill_All(0.2f);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	//Draw_Simple_Cube();
+	Draw_Sin_Particle();
 
 	// Draw Each FrameBuffer's Texture
 	glBindFramebuffer(GL_FRAMEBUFFER, 0); // Default Frame Buffer로 전환.
 	glViewport(0, 0, m_WindowSizeX, m_WindowSizeY);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	Draw_HDR_Texture_Rect(m_FBO_Texture[4], 0.0f, 0.0f, 2.0f, 2.0f);
+
+#endif
 }
 
 void Renderer::Rendering(const float& elapsed_time)
@@ -1779,10 +1850,10 @@ void Renderer::Rendering(const float& elapsed_time)
 	//Draw_Sin_Particle();
 	//Draw_FS_SandBox();
 	//Draw_Simple_Texture();
-	//Draw_VS_SandBox();
+	Draw_VS_SandBox();
 	//Draw_Simple_Cube();
 	//Test_FBO();
-	Bloom_FBO();
+	//Bloom_FBO();
 }
 
 

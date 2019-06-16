@@ -10,8 +10,9 @@ in vec4 a_Color;
 
 // varying ==> fragment shader input
 out vec4 v_Color;
-out vec2 v_Original_Pos;
+out vec2 v_Fragment_Pos;
 out float v_Radius;
+out vec2 v_Texture_UV;
 
 uniform float u_Time;
 
@@ -21,7 +22,7 @@ const mat3 c_Rotate_Matrix =
 			 1.0f, 0.0f, 0.0f,
 			 0.0f, 0.0f, 0.0f);
 
-const vec3 c_Gravity = vec3(0.0f, -5.0f, 0.0f);
+const vec3 c_Gravity = vec3(0.0f, -1.0f, 0.0f);
 
 void main()
 {
@@ -44,9 +45,9 @@ void main()
 		new_Time = mod(new_Time, life_Time);
 		new_Vel += c_Gravity * new_Time;
 		new_Pos += a_Velocity * new_Time + (0.5f * c_Gravity * new_Time * new_Time);
-		new_Pos += (0.5f * c_Gravity * new_Time * new_Time);
-		//vec3 vSin = a_Velocity * c_Rotate_Matrix;
-		//new_Pos += vSin * sin(new_Time * 2.0f * PI * ratio) * amp;
+		//new_Pos += (0.5f * c_Gravity * new_Time * new_Time);
+		vec3 vSin = a_Velocity * c_Rotate_Matrix;
+		new_Pos += vSin * sin(new_Time * 2.0f * PI * ratio) * amp;
 	}
 
 	else
@@ -72,8 +73,8 @@ void main()
 
 
 	// =========== 모양 작업 ===========
-	v_Original_Pos = a_Position.xy;
+	v_Fragment_Pos = a_Position.xy;
 	v_Radius = abs(a_Position.x);
-
+	v_Texture_UV = (a_Position.xy + abs(a_Position.xy))/abs(a_Position.xy*2);
 
 }
