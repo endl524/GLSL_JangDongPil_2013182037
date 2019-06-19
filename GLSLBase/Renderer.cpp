@@ -1850,8 +1850,8 @@ void Renderer::Rendering(const float& elapsed_time)
 	//Draw_Sin_Particle();
 	//Draw_FS_SandBox();
 	//Draw_Simple_Texture();
-	Draw_VS_SandBox();
-	//Draw_Simple_Cube();
+	//Draw_VS_SandBox();
+	Draw_Simple_Cube();
 	//Test_FBO();
 	//Bloom_FBO();
 }

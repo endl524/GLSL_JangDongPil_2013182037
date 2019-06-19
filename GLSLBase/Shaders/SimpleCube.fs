@@ -87,7 +87,7 @@ void Height_Map_Normal()
 	// specular 계산 및 색상 설정.
 	vec3 specular_Color = vec3(1.0f, 1.0f, 1.0f);
 	vec3 reflect_Direction = reflect(light_Direction, v_Normal); // R = reflect(L, N)
-	vec3 view_Direction = u_Camera_Position - v_Pos; // V = camera_Pos - pixel_Pos
+	vec3 view_Direction = v_Pos - u_Camera_Position; // V =  pixel_Pos - camera_Pos
 
 	float specular = clamp(dot(view_Direction, reflect_Direction), 0.0f, 1.0f); // spec = clamp(dot(V, R), 0, 1)
     float shininess = 10.0f;
