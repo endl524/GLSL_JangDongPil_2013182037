@@ -91,20 +91,57 @@ void Wave()
 
 
 
-void Sphere_Mapping()
+void REAL_Sphere_Mapping()
 {
 	//======================================
-	// 3. '구' 표면으로 만들기. ★
+	// 3-1. '구' 표면으로 만들기. ★
 	// ** mix 함수. => 보간을 해준다. (여기서는 Morphing) **
 	// => (어떤 값이든 보간이 되지만, 시작값과 끝값의 자료형은 같아야 한다.)
 	// => (즉, mix(a, b, c); 에서 a와 b는 자료형이 같아야 하며, c는 보간되는 수치 (0.0 ~ 1.0)이다.)
-	// "현재 코드는 꿀렁거리는 젤리"
 
+	float grey = 0.0f;
+	float distance = 0.0f;
+	float slow_Time = u_Time * 0.5f;
+
+	// 현재 정점 좌표에 대한 구 표면 각도를 구한다.
+	float r = 0.5f + abs(grey) * 0.1f;
+	float beta = (a_Position.x + 0.5f) * 2.0f * PI;
+	float theta = (a_Position.y + 0.5f) * PI;
+
+
+	// 구 표면의 공식에 따른 새로운 정점 좌표를 구한다.
+	vec3 sphere_Pos = vec3(
+		r * sin(theta) * cos(beta),
+		r * sin(theta) * sin(beta),
+		r * cos(theta)
+	);
+
+
+	// 시간이 지남에 따라 '사각평면'이 '구'로 변하는 좌표를 구해준다.
+	bool flag = mod(floor(slow_Time), 2) == 0;
+	int dir = flag ? 1 : -1;
+	float offset = flag ? 0.0f : 1.0f;
+	float new_Time = offset + dir * fract(slow_Time);
+
+	vec3 new_Pos = mix(a_Position.xyz, sphere_Pos, new_Time);
+	
+	
+	// fs로 넘겨준다.
+	gl_Position = vec4(new_Pos.xyz, 1.0f);
+	v_Grey_Scale = 1.0f;
+	v_Texture_UV = a_Position.xy + vec2(0.5f, 0.5f);
+}
+
+
+
+void MOD_Sphere_Mapping()
+{
+	//======================================
+	// 3-2. '구'를 꿀렁거리게 만들어 보자.
 
 	float grey = 0.0f;
 	float distance = 0.0f;
 
-	// (뭔질 모르겠다..)
 	for(int i = 0; i < 2; ++i)
 	{
 		distance = length(a_Position.xy - u_Points[i]) * 8.0f * PI;
@@ -118,7 +155,7 @@ void Sphere_Mapping()
 	float theta = (a_Position.y + 0.5f) * PI;
 	
 
-	// 구 표면의 공식에 따른 새로운 정점 좌표.
+	// 구 표면의 공식에 따른 새로운 정점 좌표를 구한다.
 	vec3 sphere_Pos = vec3(
 		r * sin(theta) * cos(beta),
 		r * sin(theta) * sin(beta),
@@ -127,9 +164,10 @@ void Sphere_Mapping()
 
 
 	// 시간이 지남에 따라 '사각평면'이 '구'로 변하는 좌표를 구해준다.
-	vec3 new_Pos = mix(a_Position.xyz, sphere_Pos, fract(u_Time));
+	vec3 new_Pos = mix(a_Position.xyz, sphere_Pos, 1.0f);
 	
-	
+
+	// fs로 넘겨준다.
 	gl_Position = vec4(new_Pos.xyz, 1.0f);
 	v_Grey_Scale = 1.0f;
 	v_Texture_UV = a_Position.xy + vec2(0.5f, 0.5f);
@@ -139,7 +177,8 @@ void Sphere_Mapping()
 
 void main()
 {
-	//Flag();
+	Flag();
 	//Wave();
-	Sphere_Mapping();
+	//REAL_Sphere_Mapping();
+	//MOD_Sphere_Mapping();
 }
